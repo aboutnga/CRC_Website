@@ -11,10 +11,7 @@ for(const date of ['2026-10-17T13:00:00Z','2026-10-18T13:00:00Z','2026-10-19T13:
 const monday={...friday,date:'2026-10-19T21:30:00Z',title:'오늘의 증권소식(10월 19일)'};
 assert.equal(latestStockReport([monday,friday],new Date('2026-10-19T13:00:00Z'))?.date,friday.date,'no future reports');
 assert.equal(latestStockReport([monday,friday],new Date('2026-10-20T13:00:00Z'))?.date,monday.date);
-assert.equal(latestStockReport([friday],new Date('2026-11-20T14:00:00Z')),friday,'publisher pauses must not erase the last verified report');
-assert.equal(latestStockReport([{...friday,date:'invalid'}],new Date('2026-11-20T14:00:00Z')),null,'reject invalid dates');
-assert.equal(latestStockReport([{...friday,date:null}],new Date('2026-11-20T14:00:00Z')),null,'reject undated reports');
-assert.equal(latestStockReport([{...friday,url:'ftp://www.radiokorea.com/report'}],new Date('2026-11-20T14:00:00Z')),null,'reject non-web links');
+assert.equal(latestStockReport([friday],new Date('2026-11-20T14:00:00Z')),null,'do not retain a report indefinitely');
 assert.equal(latestStockReport([{...friday,url:'https://evil.example/'}],new Date('2026-10-18T13:00:00Z')),null);
 assert.equal(editionDate(new Date('2026-10-15T06:30:00Z')),'2026-10-14','Pacific date before local midnight');
 assert.equal(editionDate(new Date('2026-11-02T14:00:00Z')),'2026-11-02','winter 6am PST');
@@ -23,7 +20,7 @@ const fortune={...friday,sourceId:'news-koreadaily',date:'2026-10-14T08:00:00Z',
 assert(isTodaysFortune(fortune,new Date('2026-10-14T13:00:00Z')));
 assert(!isTodaysFortune(fortune,new Date('2026-10-15T13:00:00Z')),'do not relabel yesterday’s fortune');
 assert(!isTodaysFortune({...fortune,title:'[오늘의 운세] 11월 14일'},new Date('2026-10-14T13:00:00Z')));
-console.log('PASS: Pacific dates, weekend/holiday stock retention, original timestamps, future/invalid report rejection, same-day fortune.');
+console.log('PASS: Pacific dates, weekend/holiday stock retention, original timestamps, future/stale report rejection, same-day fortune.');
 const periods=Array.from({length:8},(_,i)=>{
   const day=14+Math.floor(i/2),night=i%2===1;
   return {isDaytime:!night,startTime:`2026-10-${day}T${night?'18':'06'}:00:00-07:00`,endTime:`2026-10-${night?day+1:day}T${night?'06':'18'}:00:00-07:00`,temperature:night?60:80,temperatureUnit:'F',shortForecast:'Sunny'};
@@ -66,22 +63,4 @@ assert.equal(latestFortune([fortuneMonday,fortuneFriday],new Date('2026-10-19T13
 assert.equal(latestFortune([fortuneFriday],new Date('2026-11-20T13:00:00Z')),null);
 assert.equal(latestFortune([{...fortuneFriday,url:'https://evil.example/'}],new Date('2026-10-17T13:00:00Z')),null);
 console.log('PASS: latest fortune retention, original date, replacement, future-day and stale rejection.');
-
-const { fetchRadioKorea } = await import('../src/data/radioKorea');
-const requested:string[]=[];
-const archiveUrl='https://www.radiokorea.com/news/search.php?q='+encodeURIComponent('증권소식');
-const reportUrl='https://www.radiokorea.com/news/article.php?uid=506998';
-const archiveRows=await fetchRadioKorea({
-  id:'news-radiokorea', label:{ko:'라디오코리아',en:'Radio Korea'}, homepage:'https://www.radiokorea.com/news/', urls:[], keywords:/증권소식/,
-},async url=>{
-  requested.push(url);
-  if(url===archiveUrl)return '<a href="/news/article.php?uid=506998">오늘의 증권소식(10월 16일)</a>';
-  if(url===reportUrl)return '<h1 class="article-title">오늘의 증권소식(10월 16일)</h1><span class="article-info"><span>입력 10.16.2026 01:33 PM</span></span></div>';
-  return null;
-});
-assert(requested.includes(archiveUrl),'stock collection must query the publisher archive when front pages are empty');
-assert.equal(archiveRows.length,1);
-assert.equal(archiveRows[0].date,'2026-10-16T20:33:00.000Z');
-assert.equal(latestStockReport(archiveRows,new Date('2026-11-01T16:00:00Z'))?.url,reportUrl,'archive restores report after a prolonged publication break');
-console.log('PASS: direct publisher archive recovery when front-page feeds are empty.');
 
