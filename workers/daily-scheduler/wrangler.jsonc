@@ -1,10 +1,24 @@
 {
   "name": "crc-daily-scheduler",
+  "account_id": "9d61d49c7902a95a3cecf2f031ebc249",
   "main": "index.mjs",
-  "compatibility_date": "2026-10-21",
-  "workers_dev": false,
-  "triggers": { "crons": ["* * * * *"] },
-  "vars": { "ENABLED": "false" },
-  "kv_namespaces": [{ "binding": "STATE", "id": "REPLACE_WITH_APPROVED_KV_NAMESPACE_ID" }],
-  "observability": { "enabled": true }
+  "compatibility_date": "2026-11-01",
+  "workers_dev": true,
+  "triggers": {
+    "crons": [
+      "* * * * *"
+    ]
+  },
+  "vars": {
+    "ENABLED": "true"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "STATE",
+      "id": "1ba6a19f645046c9a8907b05c25d7ef6"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
 }
