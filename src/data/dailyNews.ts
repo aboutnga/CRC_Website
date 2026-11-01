@@ -4,7 +4,7 @@ import { fetchKoreatownPress } from './koreatownPress';
 import { fetchRadioKorea } from './radioKorea';
 import savedEdition from './dailyEdition.json';
 import heldEdition from './dailyPending.json';
-import { editionDate, latestFortune, latestStockReport } from './dailySchedule';
+import { editionDate, latestFortune } from './dailySchedule';
 import { isAllowedDailyHeadline } from './dailyLocality';
 import { retainedNews } from './newsHistory';
 import fallback from './dailyFallback.json';
@@ -57,7 +57,7 @@ export function fetchDailyNews(): Promise<DailyNews> {
       // It is tied to this exact edition and retires after the next refresh.
       const candidates=saved.sportsEntertainment??(saved.generatedAt===peopleSeed.editionGeneratedAt?peopleSeed.items:[]);
       const sportsEntertainment=selectPeopleNews(await reporterNews(candidates,peopleSources),new Date(saved.generatedAt),mainKorean);
-      return {...saved,items,sportsEntertainment};
+      return {...saved,items,sportsEntertainment,stocks:null};
       });
     } else pending=collectDailyNews().then(data=>({...data,sportsEntertainment:selectPeopleNews(data.sportsEntertainment??[],new Date(data.generatedAt!),dailySelection(data.items,new Date(data.generatedAt!),true).items)}));
   }
@@ -66,19 +66,16 @@ export function fetchDailyNews(): Promise<DailyNews> {
 export async function collectDailyNews(now = new Date(), saved:DailyNews|null = savedEdition) {
   const sources = [...dailySources, ...englishSources];
   let previous: NewsItem[]=retainedNews(fallback,sources);
-  let previousStocks: NewsItem[] = saved?.stocks ? [saved.stocks] : [];
   const held=heldEdition as DailyNews|null;
   const previousPeople=[...(saved?.sportsEntertainment??[]),...(held?.sportsEntertainment??[])];
   const previousFortunes=[saved?.fortune,held?.fortune].filter((item):item is NewsItem=>!!item);
   if(held) previous=[...retainedNews(held,sources),...previous];
-  if(held?.stocks) previousStocks.push(held.stocks);
   if(saved) previous = [...retainedNews(saved,sources), ...previous];
   try {
     const response=await fetch('https://crcnow.org/daily-feed.json',{signal:AbortSignal.timeout(8000)});
     if(response.ok) {
       const data = await response.json();
       previous=[...retainedNews(data,sources),...previous];
-      if(data.stocks) previousStocks.push(data.stocks);
       if(Array.isArray(data.sportsEntertainment)) previousPeople.push(...data.sportsEntertainment);
     }
   } catch { /* A first preview has no saved bulletin. */ }
@@ -103,8 +100,12 @@ export async function collectDailyNews(now = new Date(), saved:DailyNews|null = 
     if(id==='news-koreadaily') {
       return latestFortune([...rows,...previousFortunes],now);
     }
-    return latestStockReport([...rows,...previousStocks],now);
+    return null;
   };
-  const [fortune,stocks,sportsEntertainment]=await Promise.all([latestLink('news-koreadaily','오늘의 운세'),latestLink('news-radiokorea','증권소식'),collectPeopleNews(now,previousPeople)]);
+  // Stock bulletin paused until a replacement publisher is selected.
+  const stocks = null;
+  const [fortune,sportsEntertainment]=await Promise.all([latestLink('news-koreadaily','오늘의 운세'),collectPeopleNews(now,previousPeople)]);
   return {items:withManualDaily(items,editionDate(now)),fortune,stocks,sportsEntertainment,generatedAt:now.toISOString(),editionDate:editionDate(now),liveItemCount:groups.flat().length,collectionCounts:Object.fromEntries(sources.map((source,i)=>[source.id,groups[i].length]))};
 }
+
+
