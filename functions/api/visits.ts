@@ -37,7 +37,7 @@ interface EventContext {
 
 // Owner-requested estimate for visits before tracking began, not measured analytics.
 // Add only when returning totals; the database continues storing tracked visits.
-const HISTORICAL_VISIT_ADJUSTMENT = 500;
+const HISTORICAL_VISIT_ADJUSTMENT = 1893;
 
 const CREATE_TABLE = `
   CREATE TABLE IF NOT EXISTS site_visits (
