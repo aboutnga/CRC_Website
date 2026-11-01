@@ -23,7 +23,7 @@ export async function runScheduler(env,now=new Date(),request=fetch) {
   if(!env.GITHUB_DISPATCH_TOKEN || !env.STATE) throw Error('Scheduler token and STATE binding are required');
   const slot=`slot:${Math.floor(+now/60000)}`;
   if(await env.STATE.get(slot)) return 'duplicate';
-  const root='https://api.github.com/repos/brandon-baek/CRC_Website';
+  const root='https://api.github.com/repos/aboutnga/CRC_Website';
   const headers={Authorization:`Bearer ${env.GITHUB_DISPATCH_TOKEN}`,Accept:'application/vnd.github+json','Content-Type':'application/json','User-Agent':'CRC daily scheduler','X-GitHub-Api-Version':'2022-11-28'};
   const call=(url,options={})=>request(url,{...options,signal:AbortSignal.timeout(20000)});
   let fresh=false;
@@ -66,3 +66,4 @@ export default {
   scheduled(controller,env,ctx) { ctx.waitUntil(runScheduler(env,new Date(controller.scheduledTime))); },
   fetch() { return new Response('Not found',{status:404}); },
 };
+
