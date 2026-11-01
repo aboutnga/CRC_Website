@@ -1,0 +1,28 @@
+---
+import {initialMarkets,marketSymbols,marketNames,type MarketQuote} from '../data/markets';
+interface Props {quotes?:MarketQuote[];ko:boolean}
+const {quotes=initialMarkets,ko}=Astro.props;
+const number=new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const date=new Intl.DateTimeFormat(ko?'ko-KR':'en-US',{month:'numeric',day:'numeric',timeZone:'America/Los_Angeles'});
+const rows=marketSymbols.map((symbol,i)=>({...quotes.find(q=>q.symbol===symbol)??initialMarkets.find(q=>q.symbol===symbol)!,name:marketNames[i]}));
+const dates=[...new Set(rows.map(q=>date.format(new Date(q.asOf))))];
+---
+<section class="market-panel" aria-label={ko?'미국 증시·금·비트코인':'US markets, gold and Bitcoin'}>
+  <div class="market-grid">{rows.map(q=>{
+    const change=q.price-q.previousClose,percent=change/q.previousClose*100,sign=change>0?'+':'';
+    return <a href={`https://finance.yahoo.com/quote/${encodeURIComponent(q.symbol)}/`} target="_blank" rel="noopener noreferrer" title={`${q.name} · ${date.format(new Date(q.asOf))}`}><strong>{q.name}</strong><span class="market-price">{number.format(q.price)}</span><span class:list={['market-change',{up:change>=0}]}>{sign}{number.format(change)} <span>{sign}{percent.toFixed(2)}%</span></span></a>;
+  })}</div>
+  <p class="market-source"><a href="https://finance.yahoo.com/" target="_blank" rel="noopener noreferrer">Yahoo Finance</a> · {dates.join(' / ')}</p>
+</section>
+<style>
+  .market-panel{width:100%;margin:0 0 16px;}
+  .market-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 10px;}
+  .market-grid a{display:flex;flex-direction:column;gap:3px;text-decoration:none;font:600 13px/1.35 Arial,sans-serif;min-width:0;}
+  .market-grid strong{color:#1463b8;font-size:13px;white-space:nowrap;}
+  .market-price{color:#17202a;font-size:15px;}
+  .market-change{color:#c41230;font-size:11px;white-space:nowrap;}
+  .market-change.up{color:#08785c;}
+  .market-source{margin:8px 0 0;font-size:10px;text-align:right;color:#52677b;}
+  .market-source a{color:inherit;}
+  @media(max-width:360px){.market-grid{column-gap:6px}.market-change{font-size:10px}}
+</style>
