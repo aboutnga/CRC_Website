@@ -70,7 +70,11 @@ export async function fetchRadioKorea(
   const relevant = (title: string) => (!source.keywords || source.keywords.test(title))
     && (!source.requiredKeywords || source.requiredKeywords.test(title))
     && !source.excludeKeywords?.test(title);
-  const lists = await Promise.allSettled(LISTS.map(read));
+  // Stock reports can leave the front page before the next report is published.
+  // Search the publisher archive directly; Google News's recent window is not a durable archive.
+  const listUrls = source.keywords?.test('오늘의 증권소식')
+    ? [`${ORIGIN}/news/search.php?q=${encodeURIComponent('증권소식')}`, ...LISTS] : LISTS;
+  const lists = await Promise.allSettled(listUrls.map(read));
   const candidates = new Map<string, { title: string; url: string }>();
   for (const result of lists) {
     if (result.status !== 'fulfilled' || !result.value) continue;
@@ -93,3 +97,4 @@ export async function fetchRadioKorea(
   }));
   return items;
 }
+
