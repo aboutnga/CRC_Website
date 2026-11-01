@@ -1,3 +1,4 @@
+import { collectMarkets, type MarketQuote } from './markets';
 import { fetchFeed, googleNews, newsSources, parseFeed, type NewsItem, type NewsSource } from './newsFeeds';
 import { deduplicateNews } from './newsDuplicates';
 import { fetchKoreatownPress } from './koreatownPress';
@@ -37,7 +38,7 @@ const englishSources: NewsSource[] = newsSources.filter(s => s.id === 'news-la')
   excludeKeywords:/^Opinion\b|^Editorial\b|campaign endorsement/i,
 }));
 
-export interface DailyNews { items:NewsItem[]; fortune:NewsItem|null; stocks:NewsItem|null; sportsEntertainment?:NewsItem[]; generatedAt?:string; editionDate?:string; liveItemCount?:number; publishedHistory?:Record<string,string>; collectionCounts?:Record<string,number> }
+export interface DailyNews { markets?:MarketQuote[]; items:NewsItem[]; fortune:NewsItem|null; stocks:NewsItem|null; sportsEntertainment?:NewsItem[]; generatedAt?:string; editionDate?:string; liveItemCount?:number; publishedHistory?:Record<string,string>; collectionCounts?:Record<string,number> }
 export function eligibleDailyItem(item:NewsItem):boolean {
   return !isRecruitmentAd(item) && isAllowedDailyHeadline(item) && (item.sourceId==='daily-la' ? !isExcludedNews(item) : eligibleDaily(item));
 }
@@ -104,8 +105,9 @@ export async function collectDailyNews(now = new Date(), saved:DailyNews|null = 
   };
   // Stock bulletin paused until a replacement publisher is selected.
   const stocks = null;
-  const [fortune,sportsEntertainment]=await Promise.all([latestLink('news-koreadaily','오늘의 운세'),collectPeopleNews(now,previousPeople)]);
-  return {items:withManualDaily(items,editionDate(now)),fortune,stocks,sportsEntertainment,generatedAt:now.toISOString(),editionDate:editionDate(now),liveItemCount:groups.flat().length,collectionCounts:Object.fromEntries(sources.map((source,i)=>[source.id,groups[i].length]))};
+  const [fortune,sportsEntertainment,markets]=await Promise.all([latestLink('news-koreadaily','오늘의 운세'),collectPeopleNews(now,previousPeople),collectMarkets(saved?.markets)]);
+  return {items:withManualDaily(items,editionDate(now)),fortune,stocks,sportsEntertainment,markets,generatedAt:now.toISOString(),editionDate:editionDate(now),liveItemCount:groups.flat().length,collectionCounts:Object.fromEntries(sources.map((source,i)=>[source.id,groups[i].length]))};
 }
+
 
 
