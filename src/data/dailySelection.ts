@@ -2,7 +2,7 @@ import type { NewsItem } from './newsFeeds';
 import { editionDate } from './dailySchedule';
 import { dailyPriority, deduplicateDailyEvents, isKoreanConsumerReport } from './dailyEditorial';
 import { isManualDaily } from './manualDaily';
-import { applyDailyRentalPolicy, isDailyAdvertisement } from './dailyRentals';
+import { applyDailyRentalPolicy, isDailyAdvertisement, weekendEdition } from './dailyRentals';
 
 /** One edition: today's reports plus the previous evening's held news (5pm onward). */
 export function dailySelection(items: NewsItem[], now: Date, korean: boolean) {
@@ -11,8 +11,9 @@ export function dailySelection(items: NewsItem[], now: Date, korean: boolean) {
   previous.setUTCDate(previous.getUTCDate()-1);
   const yesterday = previous.toISOString().slice(0,10);
   const hour = new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',hour:'numeric',hourCycle:'h23'});
+  const allowAds=weekendEdition(now);
   const rows = items.filter(item => {
-    if (!item.date) return false;
+    if (!item.date || (!allowAds && isDailyAdvertisement(item))) return false;
     const published = new Date(item.date);
     if (!Number.isFinite(+published) || +published > +now) return false;
     if(item.firstPublishedEdition)return item.firstPublishedEdition===today;
