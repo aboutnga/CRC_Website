@@ -81,12 +81,20 @@ export async function collectDailyNews(now = new Date(), saved:DailyNews|null = 
     }
   } catch { /* A first preview has no saved bulletin. */ }
   const groups=await Promise.all(sources.map(async source=> {
-    const [documents,direct]=await Promise.all([
+    const fraudSource=newsSources.find(candidate=>candidate.lang==='ko' && candidate.id===source.id);
+    const [documents,direct,fraudDocuments]=await Promise.all([
       Promise.all(source.urls.map(fetchFeed)),
       source.id==='news-koreatownpress'?fetchKoreatownPress(source,fetchFeed):source.id==='news-radiokorea'?fetchRadioKorea(source,fetchFeed):fetchDirectDaily(source,fetchFeed),
+      Promise.all((fraudSource?.urls??[]).map(fetchFeed)),
     ]);
-    return [...direct,...documents.flatMap(xml=>xml?parseFeed(xml,source,100):[])];
+    const fraudStories=fraudDocuments.flatMap(xml=>xml&&fraudSource?parseFeed(xml,fraudSource,Infinity):[]);
+    return [...direct,...fraudStories,...documents.flatMap(xml=>xml?parseFeed(xml,source,100):[])];
   }));
+  // Pick up direct publisher stories already found by the fraud collection as well.
+  try {
+    const snapshot=await fetch('https://crcnow.org/news-feed.json',{signal:AbortSignal.timeout(8000)});
+    if(snapshot.ok) previous.push(...retainedNews(await snapshot.json(),newsSources.filter(s=>s.lang==='ko'),+now));
+  } catch { /* The publishers' feeds above are still available. */ }
   const cutoff=+now-7*86400000;
   const candidates=[...groups.flat(),...previous].filter(item=> !rejectedDirectArticle(item) && !isExcludedNews(item) && eligibleDailyItem(item) && item.date && Date.parse(item.date)>=cutoff && Date.parse(item.date)<=+now);
   const items=await reporterNews((await deduplicateNews(candidates,sources)).sort((a,b)=>(b.date??'').localeCompare(a.date??'')),sources,inspectDailyArticle);

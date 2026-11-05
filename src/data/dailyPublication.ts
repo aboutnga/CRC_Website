@@ -3,7 +3,7 @@ import type { NewsItem } from './newsFeeds';
 import { headlineKey } from './newsDuplicates';
 import { editionDate } from './dailySchedule';
 import { dailySelection } from './dailySelection';
-import { deduplicateDailyEvents } from './dailyEditorial';
+import { deduplicateDailyEvents, isKoreanConsumerReport } from './dailyEditorial';
 
 const keys=(item:NewsItem)=>['title:'+headlineKey(item.title),'url:'+item.url];
 /** Only called when preparing a publishable edition; overnight discoveries are not marked published. */
@@ -22,7 +22,7 @@ export function prepareDailyPublication(news:DailyNews,saved:DailyNews|null,now:
     const regular=dailySelection([item],now,item.sourceId!=='daily-la').items.length>0;
     // A late-discovered recent story is eligible for its first morning release,
     // not as daytime backfill. Never relabel its original publisher date.
-    const unseenMorning=morning&&!first&&!!item.date&&Date.parse(item.date)>=+now-2*86400000&&Date.parse(item.date)<=+now;
+    const unseenMorning=morning&&!first&&!isKoreanConsumerReport(item)&&!!item.date&&Date.parse(item.date)>=+now-2*86400000&&Date.parse(item.date)<=+now;
     if(!first&&!regular&&!unseenMorning)return [];
     return [{...item,firstPublishedEdition:first??today}];
   });
@@ -35,3 +35,4 @@ export function prepareDailyPublication(news:DailyNews,saved:DailyNews|null,now:
   const cutoff=new Date(+now-30*86400000).toISOString().slice(0,10);
   return {...news,items,sportsEntertainment,publishedHistory:Object.fromEntries(Object.entries(history).filter(([,date])=>date>=cutoff))};
 }
+

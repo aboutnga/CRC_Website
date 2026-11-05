@@ -1,6 +1,7 @@
 import { isOrganizationNews } from './organizationNews';
 import { sameStory } from './newsDuplicates';
 import type { NewsItem } from './newsFeeds';
+import { newsSources } from './newsFeeds';
 import { US_COMMUNITY_TERMS } from './newsLocality';
 import { isExcludedNews } from './newsEditorial';
 import { isAllowedDailyHeadline } from './dailyLocality';
@@ -13,6 +14,13 @@ const PROMOTIONS=/프로모션\s*코드|할인\s*코드|고객\s*모집|상품\s
 const NON_DAILY=/백악관|대변인|전폭기|국방부|군사|교황|평통|진보.*보수|스왈웰|재정적자.*증세|총결산.*세일|폭탄세일|팝업스토어|출사표|기업.*세미나|대학원.*세미나|친목|찬양|선교단|개인전|사진전|작품전|시조.*수상|대회.*대상|\[(?:금요단상|한국춘추|전망대|지평선|핫피플|전문)\]|\[(?:베스트원|케이만남|엘리트골프)|월드\s*파이널|월드시리즈|대표팀|손흥민|오타니|태민|뷔|방탄소년단|빅나티|하츠웨이브|하트시그널|김혜자|오스카|LA다저스|(?<!공공)공연.*홍보/;
 
 /** Prioritize Korean-American coverage; useful Korea-related information is eligible. */
+export function isKoreanConsumerReport(item:NewsItem):boolean {
+  const source=newsSources.find(source=>source.lang==='ko' && source.id===item.sourceId);
+  return !!source?.keywords?.test(item.title)
+    && (!source.requiredKeywords || source.requiredKeywords.test(item.title))
+    && !source.excludeKeywords?.test(item.title);
+}
+
 export function dailyPriority(item:NewsItem):number {
   const text=item.title+' '+item.summary;
   if(KOREAN_AMERICAN.test(text))return 0;
@@ -31,7 +39,7 @@ export function eligibleDaily(item:NewsItem):boolean {
   if(isExcludedNews(item)||ANNOUNCEMENTS.test(item.title)||NON_DAILY.test(item.title)||PROMOTIONS.test(item.title+' '+item.summary))return false;
   // Health information is eligible without a U.S. place name; a domestic Korean
   // incident is not automatically useful solely because it mentions a house or flight.
-  return dailyPriority(item)<2||/건강.*(?:정보|관리)|혈액|질환|치매|당뇨|백신|한국행|한국.*(?:병원|건강보험|입국|여행)|재외|복수국적|국적.*(?:법|신청)|환율|송금/.test(item.title);
+  return isKoreanConsumerReport(item)||dailyPriority(item)<2||/건강.*(?:정보|관리)|혈액|질환|치매|당뇨|백신|한국행|한국.*(?:병원|건강보험|입국|여행)|재외|복수국적|국적.*(?:법|신청)|환율|송금/.test(item.title);
 }
 
 /** Known local incidents with heavily rewritten syndicated headlines. */
@@ -55,3 +63,4 @@ export function deduplicateDailyEvents(rows:NewsItem[]):NewsItem[] {
   }
   return winners;
 }
+

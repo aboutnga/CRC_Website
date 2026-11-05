@@ -1,8 +1,8 @@
 import type { NewsItem } from './newsFeeds';
 import { editionDate } from './dailySchedule';
-import { dailyPriority, deduplicateDailyEvents } from './dailyEditorial';
+import { dailyPriority, deduplicateDailyEvents, isKoreanConsumerReport } from './dailyEditorial';
 import { isManualDaily } from './manualDaily';
-import { applyDailyRentalPolicy } from './dailyRentals';
+import { applyDailyRentalPolicy, isDailyAdvertisement } from './dailyRentals';
 
 /** One edition: today's reports plus the previous evening's held news (5pm onward). */
 export function dailySelection(items: NewsItem[], now: Date, korean: boolean) {
@@ -24,12 +24,17 @@ export function dailySelection(items: NewsItem[], now: Date, korean: boolean) {
   const pool=[...applyDailyRentalPolicy(rows.filter(item=>!isManualDaily(item,today)),now),...manual];
   const unique=deduplicateDailyEvents(pool).filter(item=>korean ? item.sourceId!=='daily-la' : item.sourceId==='daily-la');
   // Community relevance selects the pool; publication date controls visible order.
-  const priority=[...unique].sort((a,b)=>(Number(isManualDaily(b,today))-Number(isManualDaily(a,today)))
+  const priority=[...unique].sort((a,b)=>Number(isDailyAdvertisement(a))-Number(isDailyAdvertisement(b))
+    || Number(isKoreanConsumerReport(b))-Number(isKoreanConsumerReport(a))
+    || (Number(isManualDaily(b,today))-Number(isManualDaily(a,today)))
     || (korean?dailyPriority(a)-dailyPriority(b):0)
     || (b.publicationDay??editionDate(new Date(b.date!))).localeCompare(a.publicationDay??editionDate(new Date(a.date!)))
     || (b.publicationDay?0:Date.parse(b.date!))-(a.publicationDay?0:Date.parse(a.date!)));
-  const selected=priority.slice(0,40).sort((a,b)=>
-    (b.publicationDay??editionDate(new Date(b.date!))).localeCompare(a.publicationDay??editionDate(new Date(a.date!)))
+  const limit=Math.max(40,unique.filter(item=>!isDailyAdvertisement(item)&&isKoreanConsumerReport(item)).length);
+  const selected=priority.slice(0,limit).sort((a,b)=>
+    Number(isDailyAdvertisement(a))-Number(isDailyAdvertisement(b))
+    || (b.publicationDay??editionDate(new Date(b.date!))).localeCompare(a.publicationDay??editionDate(new Date(a.date!)))
     || (b.publicationDay?0:Date.parse(b.date!))-(a.publicationDay?0:Date.parse(a.date!)));
   return { items: selected };
 }
+
