@@ -26,7 +26,7 @@ The same predicate applies to fresh, saved, held, fallback and live-feed candida
 
 ## Rental content
 
-Rental and lease listings and rental-housing news (including rent, tenancy and eviction articles) are withheld from regular daily editions. Only on Sunday in America/Los_Angeles may rental items fill an otherwise empty eligible main news list; any eligible non-rental story in either language suppresses that fallback. Ordinary builds re-filter saved editions, and publication applies the same rule, so saved items and late-discovery backfill cannot bypass it. Existing date, locality and editorial exclusions still apply. The decision uses the displayed edition's timestamp to preserve the overnight freeze. No other schedules or page layouts change.
+Other rental and lease items and rental-housing news (including rent, tenancy and eviction articles) are withheld from regular daily editions. Only on Sunday in America/Los_Angeles may rental items fill an otherwise empty eligible main news list; any eligible non-rental story in either language suppresses that fallback. Ordinary builds re-filter saved editions, and publication applies the same rule, so saved items and late-discovery backfill cannot bypass it. Existing date, locality and editorial exclusions still apply. The decision uses the displayed edition's timestamp to preserve the overnight freeze. No other schedules or page layouts change.
 
 The rental review preview is regenerated from the retained candidate pool using prepareDailyPublication, preserving timestamps and publication history; do not pad the list with previously published stories or classifieds. Society/economy discovery was audited against the two publishers' section pages. Standard collection already visits those pages. Rental removal is applied before the 40-story language limit on future publication, so eligible non-rental stories fill available slots.
 
@@ -35,7 +35,7 @@ Direct recruiting ads (including employee募集/직원 모집, job-opening solic
 
 ## Matrix update — November 1, 2026
 
-Real news always takes priority over advertisements. Apartment/housing ads and explicitly labeled advertisements that pass existing eligibility rules go at the bottom of the same list, after every news article. Within each group keep newest first. News also takes priority when selecting the 40 available slots; a newer or manually requested ad must not displace eligible news. No extra section heading is added. Existing exclusion and rental-eligibility rules still apply; this does not authorize previously excluded business promotions.
+Apartment advertisements are eligible only for Saturday and Sunday editions in Los Angeles, including manually selected or saved listings. Weekend ads can fill remaining spaces after news. Monday through Friday editions omit them. Real news always takes priority over advertisements. Apartment/housing ads and explicitly labeled advertisements that pass existing eligibility rules go at the bottom of the same list, after every news article. Within each group keep newest first. News also takes priority when selecting the 40 available slots; a newer or manually requested ad must not displace eligible news. No extra section heading is added. Existing exclusion and rental-eligibility rules still apply; this does not authorize previously excluded business promotions.
 
 오늘의 운세 retains the latest eligible published entry with its actual date until a newer entry is available. Never relabel an older entry as today just because the daily bulletin refreshed.
 
