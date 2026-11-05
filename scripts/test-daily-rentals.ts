@@ -14,12 +14,12 @@ for(const title of ['LA 독감 예방 안내','크리스마스 안전 정보','�
 const rental=story('LA 아파트 렌트'),news=story('LA 독감 예방 안내');
 assert.deepEqual(applyDailyRentalPolicy([rental],monday),[],'no rentals on weekdays');
 assert.deepEqual(applyDailyRentalPolicy([rental],sunday),[rental],'Sunday fallback');
-assert.deepEqual(applyDailyRentalPolicy([rental,news],sunday),[news],'any regular news suppresses rentals on Sunday');
+assert.deepEqual(applyDailyRentalPolicy([rental,news],sunday),[news,rental],'weekend apartment ads follow news');
 assert.deepEqual(dailySelection([rental],sunday,true).items,[rental]);
-assert.deepEqual(dailySelection([rental,news],sunday,true).items,[news]);
+assert.deepEqual(dailySelection([rental,news],sunday,true).items,[news,rental]);
 assert.equal(dailySelection([story('LA 아파트 렌트',monday.toISOString())],monday,true).items.length,0);
 const english=story('LA health alert',sunday.toISOString(),'daily-la');
-assert.equal(dailySelection([rental,english],sunday,true).items.length,0,'English news also prevents fallback');
+assert.equal(dailySelection([rental,english],sunday,true).items.length,1,'eligible Korean weekend ad stays on Korean page');
 const stale=story('LA 지난주 소식','2026-10-28T17:00:00Z');
 assert.deepEqual(dailySelection([rental,stale],sunday,true).items,[rental],'stale news does not block Sunday fallback');
 const savedRental={...rental,firstPublishedEdition:'2026-11-02',date:monday.toISOString()};
@@ -29,7 +29,7 @@ assert.equal(applyDailyRentalPolicy([rental],new Date('2026-11-02T08:00:00Z')).l
 assert.equal(applyDailyRentalPolicy([rental],new Date('2026-03-08T16:00:00Z')).length,1,'spring DST Sunday');
 const edition=(items:NewsItem[],now:Date)=>({items,fortune:null,stocks:null,editionDate:now.toISOString().slice(0,10),generatedAt:now.toISOString()});
 assert.equal(prepareDailyPublication(edition([story('LA 아파트 렌트',monday.toISOString())],monday),null,monday).items.length,0,'publication cannot backfill weekday rentals');
-assert.deepEqual(prepareDailyPublication(edition([rental,news],sunday),null,sunday).items.map(item=>item.title),[news.title]);
+assert.deepEqual(prepareDailyPublication(edition([rental,news],sunday),null,sunday).items.map(item=>item.title),[news.title,rental.title]);
 assert.deepEqual(prepareDailyPublication(edition([rental],sunday),null,sunday).items.map(item=>item.title),[rental.title]);
 console.log('PASS: rental/lease listings and housing news, summary detection, false positives, weekday exclusion, Sunday empty-news fallback, both languages, stale/saved items, publication guards and Pacific DST boundaries.');
 for(const title of ['직원 모집 프런트 데스크 리셉셔니스트 시급 $25–$30 풀타임 LA 코리아타운','✅ 구인 미 육군 — 200개 이상 직업 분야, 경력 없어도 지원 가능 한인 모병관 직접 상담','LA 회사 사원 모집','LA 채용 공고','Now hiring: front desk receptionist','Help wanted: full-time cashier']) {
@@ -39,3 +39,6 @@ for(const title of ['직원 모집 프런트 데스크 리셉셔니스트 시급
 }
 for(const title of ['LA 고용 증가와 임금 상승','미국 구인 건수 감소','한인 고용시장 동향','대학생 장학금 신청 안내','일자리 지원 정책 변경']) assert(!isRecruitmentAd(story(title)),title);
 console.log('PASS: receptionist and military recruiting ads excluded in both languages; employment, wage and benefit news retained.');
+
+const saturday=new Date('2026-10-31T16:00:00Z');
+assert.deepEqual(applyDailyRentalPolicy([rental,news],saturday),[news,rental]);
