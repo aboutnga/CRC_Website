@@ -31,3 +31,14 @@ Rental and lease listings and rental-housing news (including rent, tenancy and e
 The rental review preview is regenerated from the retained candidate pool using prepareDailyPublication, preserving timestamps and publication history; do not pad the list with previously published stories or classifieds. Society/economy discovery was audited against the two publishers' section pages. Standard collection already visits those pages. Rental removal is applied before the 40-story language limit on future publication, so eligible non-rental stories fill available slots.
 
 Direct recruiting ads (including employee募集/직원 모집, job-opening solicitations, and recruiter consultation ads) are excluded from daily news in both languages and retained snapshots. Employment, wage, and public job-support reporting retain their existing eligibility.
+
+
+## Matrix update — November 1, 2026
+
+Real news always takes priority over advertisements. Apartment/housing ads and explicitly labeled advertisements that pass existing eligibility rules go at the bottom of the same list, after every news article. Within each group keep newest first. News also takes priority when selecting the 40 available slots; a newer or manually requested ad must not displace eligible news. No extra section heading is added. Existing exclusion and rental-eligibility rules still apply; this does not authorize previously excluded business promotions.
+
+오늘의 운세 retains the latest eligible published entry with its actual date until a newer entry is available. Never relabel an older entry as today just because the daily bulletin refreshed.
+
+## Daily Korean American consumer reporting
+
+오늘의 생활정보 includes new fraud and consumer-harm reports from 미주한국일보, 미주중앙일보, 라디오코리아 and 코리아타운프레스 alongside other daily news. Collect the same targeted publisher feeds used by 사기·소비자 피해 뉴스 and check its published collection on each scheduled refresh. Apply the existing Pacific publication window, overnight hold, editorial rules and duplicate checks. Reserve slots for eligible new consumer reports before filling the usual 40-story list, then show news newest first with apartment advertisements last. The dedicated fraud page keeps its longer-running collection and existing refresh schedule.
