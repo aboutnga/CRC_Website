@@ -22,7 +22,9 @@ export function prepareDailyPublication(news:DailyNews,saved:DailyNews|null,now:
     const regular=dailySelection([item],now,item.sourceId!=='daily-la').items.length>0;
     // A late-discovered recent story is eligible for its first morning release,
     // not as daytime backfill. Never relabel its original publisher date.
-    const unseenMorning=morning&&!first&&!isKoreanConsumerReport(item)&&!!item.date&&Date.parse(item.date)>=+now-2*86400000&&Date.parse(item.date)<=+now;
+    const afterLastEdition=!!saved?.generatedAt && !!item.date && Date.parse(item.date)>Date.parse(saved.generatedAt);
+    const allowMorningBackfill=!isKoreanConsumerReport(item)||afterLastEdition;
+    const unseenMorning=morning&&!first&&allowMorningBackfill&&!!item.date&&Date.parse(item.date)>=+now-2*86400000&&Date.parse(item.date)<=+now;
     if(!first&&!regular&&!unseenMorning)return [];
     return [{...item,firstPublishedEdition:first??today}];
   });
