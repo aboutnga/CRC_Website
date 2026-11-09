@@ -15,7 +15,7 @@ import { collectPeopleNews, selectPeopleNews, peopleSources } from './sportsEnte
 import peopleSeed from './sportsEntertainmentSeed.json';
 import { withManualDaily } from './manualDaily';
 import { dailySelection } from './dailySelection';
-import { fetchDirectDaily, inspectDailyArticle, rejectedDirectArticle } from './directDaily';
+import { fetchDirectDaily, inspectDailyArticle, rejectedDirectArticle, fraudContext } from './directDaily';
 import { eligibleDaily, isRecruitmentAd } from './dailyEditorial';
 
 export const DAILY_TOPICS = /경제|물가|금리|고용|일자리|주택|렌트|임대|보험|의료|병원|건강|메디|연금|소셜|은퇴|세금|세액|환불|리콜|소비자|전기|수도|공과금|교통|도로|차선|버스|메트로|공항|항공|산불|폭염|강풍|날씨|해변|상어|안전|경보|주의|지원|혜택|신청|이민|영주권|시민권|공연|콘서트|문화|박물관|도서관|사기|피싱|해킹|스캠|주가|증시|장학|학자금|학비|파산/i;
@@ -40,6 +40,7 @@ const englishSources: NewsSource[] = newsSources.filter(s => s.id === 'news-la')
 
 export interface DailyNews { markets?:MarketQuote[]; items:NewsItem[]; fortune:NewsItem|null; stocks:NewsItem|null; sportsEntertainment?:NewsItem[]; generatedAt?:string; editionDate?:string; liveItemCount?:number; publishedHistory?:Record<string,string>; collectionCounts?:Record<string,number> }
 export function eligibleDailyItem(item:NewsItem):boolean {
+  if(item.sourceId==='daily-la' && /NFL|draft picks?|Jaguars|Falcons|New Delhi/i.test(item.title))return false;
   return !isRecruitmentAd(item) && isAllowedDailyHeadline(item) && (item.sourceId==='daily-la' ? !isExcludedNews(item) : eligibleDaily(item));
 }
 let pending: Promise<DailyNews>;
@@ -96,6 +97,17 @@ export async function collectDailyNews(now = new Date(), saved:DailyNews|null = 
     if(snapshot.ok) previous.push(...retainedNews(await snapshot.json(),newsSources.filter(s=>s.lang==='ko'),+now));
   } catch { /* The publishers' feeds above are still available. */ }
   const cutoff=+now-7*86400000;
+  const recentFraud=previous.filter(item=>item.date&&Date.parse(item.date)>=+now-2*86400000
+    && /^https:\/\/(?:www\.)?koreadaily\.com\/article\/\d+\/?$/.test(item.url)
+    && /AI\s*목소리|사칭|피싱/.test(item.title)&&!item.summary.includes('미국'));
+  const checked=new Map<string,string>();
+  for(const item of recentFraud){
+    if(!checked.has(item.url)){
+      const html=await inspectDailyArticle(item,sources.find(s=>s.id===item.sourceId)!);
+      checked.set(item.url,fraudContext(item.title,item.summary,html??''));
+    }
+    item.summary=checked.get(item.url)!;
+  }
   const candidates=[...groups.flat(),...previous].filter(item=> !rejectedDirectArticle(item) && !isExcludedNews(item) && eligibleDailyItem(item) && item.date && Date.parse(item.date)>=cutoff && Date.parse(item.date)<=+now);
   const items=await reporterNews((await deduplicateNews(candidates,sources)).sort((a,b)=>(b.date??'').localeCompare(a.date??'')),sources,inspectDailyArticle);
   const latestLink=async(id:string,query:string)=> {

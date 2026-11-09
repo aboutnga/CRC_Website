@@ -19,7 +19,7 @@ export function isKoreanConsumerReport(item:NewsItem):boolean {
   const context=item.title+' '+(item.summary??'');
   const impersonation=/목소리.{0,15}(?:속아|사칭)|(?:AI|인공지능).{0,18}(?:사칭|피싱)/i.test(context);
   return !!source && (!!source.keywords?.test(context)||impersonation)
-    && (!source.requiredKeywords || source.requiredKeywords.test(context) || (impersonation && /미국|미 연방|미주리|달러/.test(context)))
+    && (!source.requiredKeywords || source.requiredKeywords.test(context))
     && !source.excludeKeywords?.test(item.title);
 }
 
@@ -36,6 +36,8 @@ export function isRecruitmentAd(item:Pick<NewsItem,'title'|'summary'>):boolean {
 }
 export function eligibleDaily(item:NewsItem):boolean {
   const context=item.title+' '+(item.summary??'');
+  if(/시니어.{0,12}협력\s*MOU|기업.{0,4}지정|화가.{0,35}전시회|빌보드.{0,20}앨범\s*차트/.test(item.title))return false;
+  if(/(?:EU|유럽연합).{0,15}출입국시스템|(?:인도|이란).{0,25}(?:공군|작전|간첩)|美\s*제재.{0,8}자체\s*개발/.test(item.title))return false;
   if(/우크라(?:이나)?.{0,20}지원|팔레스타인\s*국기|다카이치.{0,25}악수|추가관세.{0,30}유예|보수\s*연대|선전\s*APEC|외교부|의회\s*브리핑/.test(item.title))return false;
   if(/칼리지\s*페어|college\s*fair/i.test(context)&&/주최|후원|참가|등록|\[알림\]/.test(context))return false;
   if(/아이캠프|초대전|한미우호상|세계\s*회계사대회|\[롤드컵/.test(item.title))return false;
@@ -53,7 +55,12 @@ export function eligibleDaily(item:NewsItem):boolean {
 
 /** Known local incidents with heavily rewritten syndicated headlines. */
 export function dailyEvent(item:NewsItem):string|null {
-  if(/엔비디아/.test(item.title)&&/젠슨\s*황/.test(item.title)&&/8%/.test(item.title)&&/급락/.test(item.title))return 'nvidia-huang-eight-percent';
+  if(/엔비디아/.test(item.title)&&/젠슨\s*황/.test(item.title)&&/불륜/.test(item.title)&&/급락|하락/.test(item.title))return 'nvidia-huang-price-drop';
+  const topic=item.title+' '+(item.summary??'');
+  if(/하프\s*마라톤|half.marathon/i.test(item.title)&&/산타바[바버]라|샌타바버라|Santa Barbara/i.test(topic)&&/병원|이송|hospital|fall ill|symptoms/i.test(item.title))return 'santa-barbara-half-marathon-illness';
+  if(/CA주\s*하프마라톤/.test(item.title)&&/19명.*병원/.test(item.title))return 'santa-barbara-half-marathon-illness';
+  if(/91 Freeway/i.test(item.title)&&/Corona/i.test(item.title)&&/closure/i.test(item.title))return 'corona-91-closure';
+  if(/firefighters rescue dog/i.test(item.title)&&/apartment fire/i.test(item.title)&&/Irvine|Southern California/i.test(item.title))return 'irvine-dog-apartment-fire';
   if(/삼성화재/.test(item.title)&&/3조/.test(item.title)&&/보험사/.test(item.title))return 'samsung-insurance-uk-acquisition';
   // One quarterly U.S. GDP bulletin, including forecasts and results, per user request.
   const quarter=item.title.match(/([1-4])\s*분기/);

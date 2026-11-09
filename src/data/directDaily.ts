@@ -33,6 +33,11 @@ export function directLinks(html:string,sourceId:string):string[] {
   }catch{}
   return [...urls].sort((a,b)=>b.localeCompare(a));
 }
+export function fraudContext(title:string,summary:string,html:string):string {
+  if(summary.includes('미국')||!/사칭|피싱|AI\s*목소리/.test(title+' '+summary))return summary;
+  const lead=plainText(html.split('<!--#dev body-->')[1]?.slice(0,1800)??'').slice(0,500);
+  return /미국에서\s*기소|미국과\s*유럽\s*기업|미국\s*피해자/.test(lead)?summary+' (미국 관련 보도)':summary;
+}
 export function parseDirectArticle(html:string,url:string,source:NewsSource):NewsItem|null {
   const title=meta(html,'og:title').replace(/\s*(?:\||-)\s*미주\s*(?:중앙일보|한국일보)\s*$/,'').trim();
   const timestamp=meta(html,'article:published_time');
@@ -47,7 +52,8 @@ export function parseDirectArticle(html:string,url:string,source:NewsSource):New
   if(/정치|오피니언|사설|칼럼|연예|스포츠|종교/.test(section+plainText(location))||/\/section\/(?:113|103|109|111|102\/220|108\/259|105\/245)(?:[/'"])/.test(location)||(/\/102\/217/.test(location)&&!health)) {
     rejected.add(source.id+':'+headlineKey(title));return null;
   }
-  return {sourceId:source.id,publisher:source.label.ko,title,url,date,summary:meta(html,'og:description').slice(0,450),...(timestamp?{}:{publicationDay:day})};
+  const summary=fraudContext(title,meta(html,'og:description').slice(0,450),html);
+  return {sourceId:source.id,publisher:source.label.ko,title,url,date,summary,...(timestamp?{}:{publicationDay:day})};
 }
 export async function fetchDirectDaily(source:NewsSource,read:(url:string)=>Promise<string|null>) {
   const documents=await Promise.all((lists[source.id]??[]).map(read));

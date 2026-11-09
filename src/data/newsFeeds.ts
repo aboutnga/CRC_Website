@@ -525,8 +525,13 @@ async function gatherNews(perSource: number): Promise<NewsFeedResult> {
     }),
   );
 
+  // Daily collection can verify local fraud in the publisher's article body as well as its headline.
+  const {default:edition}=await import('./dailyEdition.json');
+  const {isKoreanConsumerReport,eligibleDaily}=await import('./dailyEditorial');
+  const trusted=newsSources.filter(s=>s.lang==='ko').map(s=>({...s,keywords:undefined,requiredKeywords:undefined}));
+  const verifiedDaily=retainedNews(edition,trusted).filter(item=>isKoreanConsumerReport(item)&&eligibleDaily(item));
   const candidates = results.flatMap((result) => result.status === 'fulfilled' ? result.value : []);
-  const items = await reporterNews(await deduplicateNews(candidates.filter(item => !isExcludedNews(item)), newsSources), newsSources);
+  const items = await reporterNews(await deduplicateNews([...verifiedDaily,...candidates].filter(item => !isExcludedNews(item)), newsSources), newsSources);
   // A source whose only story lost a duplicate comparison must not leave an empty tab.
   const retainedSources = new Set(items.map((item) => item.sourceId));
   const liveSources = newsSources.filter((source) => retainedSources.has(source.id));
