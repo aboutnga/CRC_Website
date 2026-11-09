@@ -42,3 +42,7 @@ Apartment advertisements are eligible only for Saturday and Sunday editions in L
 ## Daily Korean American consumer reporting
 
 오늘의 생활정보 includes new fraud and consumer-harm reports from 미주한국일보, 미주중앙일보, 라디오코리아 and 코리아타운프레스 alongside other daily news. Collect the same targeted publisher feeds used by 사기·소비자 피해 뉴스 and check its published collection on each scheduled refresh. Apply the existing Pacific publication window, overnight hold, editorial rules and duplicate checks. Reserve slots for eligible new consumer reports before filling the usual 40-story list, then show news newest first with apartment advertisements last. The dedicated fraud page keeps its longer-running collection and existing refresh schedule.
+
+## Education bylines
+
+Education, admissions, academy, scholarship and student-program articles in 생활정보 require a verified journalist byline or publisher journalist profile. Exclude academy-director (원장), business-owner (대표), consultant and ASK미국 education columns. Hold education stories with an unverified byline, including when a publisher lookup fails. A journalist may quote an educator in independent reporting. Apply the same rule when rebuilding saved editions.
