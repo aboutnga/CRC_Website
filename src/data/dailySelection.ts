@@ -31,10 +31,10 @@ export function dailySelection(items: NewsItem[], now: Date, korean: boolean) {
     || (korean?dailyPriority(a)-dailyPriority(b):0)
     || (b.publicationDay??editionDate(new Date(b.date!))).localeCompare(a.publicationDay??editionDate(new Date(a.date!)))
     || (b.publicationDay?0:Date.parse(b.date!))-(a.publicationDay?0:Date.parse(a.date!)));
-  // From the November 10 Pacific edition, show every eligible news story.
+  // From the November 9 Pacific edition, show every eligible news story.
   // Weekend ads may still fill only unused places in the original 40 slots.
   const reserved = unique.filter(item => !isDailyAdvertisement(item)
-    && (today >= '2026-11-10' || isKoreanConsumerReport(item))).length;
+    && (today >= '2026-11-09' || isKoreanConsumerReport(item))).length;
   const limit = Math.max(40, reserved);
   const selected=priority.slice(0,limit).sort((a,b)=>
     Number(isDailyAdvertisement(a))-Number(isDailyAdvertisement(b))
