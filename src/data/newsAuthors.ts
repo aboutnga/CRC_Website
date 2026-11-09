@@ -5,15 +5,20 @@ import { isExcludedNews } from './newsEditorial';
 export type AuthorDecision = 'reporter' | 'commercial' | 'unverified';
 const commercial = /보험|부동산|브로커|에이전트|공인회계사|세무사|재정상담|대표|사장|사업가|사업자|기업인|업주|원장|변호사|컨설턴트|\b(?:agent|broker|realtor|business\s*owner|entrepreneur|CEO|president|founder|CPA|financial\s*advis[eo]r|consultant)\b/i;
 const reporter = /기자|특파원|취재팀|편집국|뉴스팀|\b(?:reporter|correspondent|staff\s*writer|newsroom|news\s*staff)\b/i;
+const journalist = /기자|특파원|\b(?:journalist|reporter|correspondent|staff\s*writer)\b/i;
+const education = /교육|학교|학군|학생|고교|고등학교|초등|중학교|유치원|교사|교원|교실|교과|학습|학부모|대학|명문대|입시|대입|진학|유학|입학|학원|장학|학자금|인턴십|과외|\b(?:educat\w*|schools?|teachers?|students?|colleges?|universit\w*|admissions?|scholarships?|internships?|tuition|financial aid|curriculum|tutoring|campus|SAT|FAFSA)\b/i;
 const text = (s:string) => s.replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/g,' ').replace(/&quot;/g,'"').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
 
 /** Inspect author fields only; quoting a broker in a reporter's story is allowed. */
-export function articleAuthorDecision(html:string): AuthorDecision {
+export function articleAuthorDecision(html:string, requireJournalist=false): AuthorDecision {
   const evidence:string[]=[];
   // Korea Times' primary byline sits just below tit_arti, before the article body.
   const ktHeader=html.split(/id=["']tit_arti["']/)[1]?.slice(0,2000);
   const ktWriter=ktHeader?.match(/<span\b[^>]*class=["']writer["'][^>]*>([\s\S]*?)<\/span>\s*(?:기자)?\s*<\/span>/)?.[1];
-  if(ktWriter)evidence.push(text(ktWriter));
+  if(ktWriter){
+    evidence.push(text(ktWriter));
+    if(/class=["']writer["'][^>]*>[\s\S]{0,120}?<\/span>\s*기자\s*<\/span>/.test(ktHeader??''))evidence.push('기자');
+  }
   let reporterProfile=false;
   let primaryArticleSeen=false;
   for(const match of html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
@@ -57,7 +62,7 @@ export function articleAuthorDecision(html:string): AuthorDecision {
     }
   }
   if(evidence.some(s=>commercial.test(s)))return 'commercial';
-  if(reporterProfile || evidence.some(s=>reporter.test(s)))return 'reporter';
+  if(reporterProfile || evidence.some(s=>(requireJournalist?journalist:reporter).test(s)))return 'reporter';
   return 'unverified';
 }
 
@@ -73,14 +78,18 @@ export async function reporterNews(items:NewsItem[],sources:NewsSource[],inspect
     if(!source || isExcludedNews(item))continue;
     // This gate covers the four Korean-American media outlets. Official agency
     // releases and the separately curated English sources keep their own rules.
-    if(source.lang!=='ko'){allowed[index]=true;continue;}
-    const key=source.id+':'+item.url+':'+item.title;
+    const requireJournalist=(source.lang==='ko'||source.id==='daily-la') && education.test(item.title+' '+(item.summary??''));
+    // ASK미국 identifies the contributor in the headline even when an RSS link hides the byline.
+    if(requireJournalist && /\[\s*ASK미국|\[[^\]]*(?:원장|대표|컨설턴트)\s*\]/i.test(item.title))continue;
+    if(source.lang!=='ko'&&!requireJournalist){allowed[index]=true;continue;}
+    const key=source.id+':'+requireJournalist+':'+item.url+':'+item.title;
     let decision=inspect===articlePage?decisions.get(key):undefined;
     if(!decision){
-      decision=inspect(item,source).then(html=>html?articleAuthorDecision(html):'unverified' as AuthorDecision).catch(()=>'unverified' as AuthorDecision);
+      decision=inspect(item,source).then(html=>html?articleAuthorDecision(html,requireJournalist):'unverified' as AuthorDecision).catch(()=>'unverified' as AuthorDecision);
       if(inspect===articlePage)decisions.set(key,decision);
     }
-    allowed[index]=(await decision)!=='commercial';
+    const author=await decision;
+    allowed[index]=requireJournalist?author==='reporter':author!=='commercial';
   }};
   await Promise.all(Array.from({length:4},worker));
   return items.filter((_,i)=>allowed[i]);
