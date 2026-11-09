@@ -32,8 +32,8 @@ export const dailySources: NewsSource[] = newsSources.filter(s => s.lang === 'ko
   excludeKeywords: DAILY_EXCLUDES,
 }));
 const englishSources: NewsSource[] = newsSources.filter(s => s.id === 'news-la').map(s => ({...s, id:'daily-la',
-  urls:[googleNews('California benefits when:7d','en-US','US'),googleNews('"Los Angeles" housing when:7d','en-US','US')],
-  keywords:/benefit|housing|recall|traffic|retirement|health|insurance|utility|heat|fire|tax/i,
+  urls:[...['site:abc7.com Los Angeles','site:nbclosangeles.com Southern California','site:ktla.com Los Angeles','site:laist.com Los Angeles'].map(query=>googleNews(query+' when:2d','en-US','US')),googleNews('California benefits when:7d','en-US','US'),googleNews('"Los Angeles" housing when:7d','en-US','US')],
+  keywords:/benefit|housing|recall|traffic|retirement|health|insurance|utility|heat|fire|tax|safety|crash|road|freeway|closures?|Metro|food|police|scam|fraud|weather|jobs|school|hospital|Veterans Day/i,
   allowPublishers:new Set([...s.allowPublishers!, 'KQED', 'Sacramento Bee', 'The Desert Sun']),
   excludeKeywords:/^Opinion\b|^Editorial\b|campaign endorsement/i,
 }));

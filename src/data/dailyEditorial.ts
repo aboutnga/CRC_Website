@@ -16,8 +16,10 @@ const NON_DAILY=/백악관|대변인|전폭기|국방부|군사|교황|평통|�
 /** Prioritize Korean-American coverage; useful Korea-related information is eligible. */
 export function isKoreanConsumerReport(item:NewsItem):boolean {
   const source=newsSources.find(source=>source.lang==='ko' && source.id===item.sourceId);
-  return !!source?.keywords?.test(item.title)
-    && (!source.requiredKeywords || source.requiredKeywords.test(item.title))
+  const context=item.title+' '+(item.summary??'');
+  const impersonation=/목소리.{0,15}(?:속아|사칭)|(?:AI|인공지능).{0,18}(?:사칭|피싱)/i.test(context);
+  return !!source && (!!source.keywords?.test(context)||impersonation)
+    && (!source.requiredKeywords || source.requiredKeywords.test(context) || (impersonation && /미국|미 연방|미주리|달러/.test(context)))
     && !source.excludeKeywords?.test(item.title);
 }
 
@@ -33,6 +35,13 @@ export function isRecruitmentAd(item:Pick<NewsItem,'title'|'summary'>):boolean {
   return /직원\s*모집|사원\s*모집|인재\s*모집|함께\s*일할|채용\s*(?:공고|광고|문의|상담)|\[\s*구인\s*\]|(?:^|[✅✔\s])구인\s+(?!난|시장|동향|건수|감소|증가)|모병관.*(?:직접\s*)?상담|\b(?:now hiring|help wanted|we are hiring|we're hiring|job openings|apply now for (?:a |the )?job)\b/i.test(text);
 }
 export function eligibleDaily(item:NewsItem):boolean {
+  const context=item.title+' '+(item.summary??'');
+  if(/우크라(?:이나)?.{0,20}지원|팔레스타인\s*국기|다카이치.{0,25}악수|추가관세.{0,30}유예|보수\s*연대|선전\s*APEC|외교부|의회\s*브리핑/.test(item.title))return false;
+  if(/칼리지\s*페어|college\s*fair/i.test(context)&&/주최|후원|참가|등록|\[알림\]/.test(context))return false;
+  if(/아이캠프|초대전|한미우호상|세계\s*회계사대회|\[롤드컵/.test(item.title))return false;
+  if(/재정설계|금융\s*전문가/.test(context)&&/포브스.{0,18}최고|전문가.{0,14}합류/.test(item.title))return false;
+  if(/젠슨\s*황/.test(context)&&/불륜|포섭|간첩/.test(context)&&!/주가|급락|하락세/.test(item.title))return false;
+  if(/농구감독|삼성화재.{0,18}(?:영국|英)/.test(item.title)&&!US_COMMUNITY_TERMS.test(item.title))return false;
   if(isRecruitmentAd(item)||isOrganizationNews(item))return false;
   if(!isAllowedDailyHeadline(item))return false;
   if(/보러\s*오세요|실질적\s*기여\s*약속|외식협.*세미나|봄\s*마켓\s*준비|의료.*시대\s*연다|센터메디컬그룹.*행사|단체.*교류\s*확대|풀러턴.*횡성군|지속.*위로\s*전할/.test(item.title))return false;
@@ -44,6 +53,8 @@ export function eligibleDaily(item:NewsItem):boolean {
 
 /** Known local incidents with heavily rewritten syndicated headlines. */
 export function dailyEvent(item:NewsItem):string|null {
+  if(/엔비디아/.test(item.title)&&/젠슨\s*황/.test(item.title)&&/8%/.test(item.title)&&/급락/.test(item.title))return 'nvidia-huang-eight-percent';
+  if(/삼성화재/.test(item.title)&&/3조/.test(item.title)&&/보험사/.test(item.title))return 'samsung-insurance-uk-acquisition';
   // One quarterly U.S. GDP bulletin, including forecasts and results, per user request.
   const quarter=item.title.match(/([1-4])\s*분기/);
   if(quarter&&/미국|美|미\s|U\.?S\.?/i.test(item.title)&&/GDP|국내총생산/i.test(item.title))return 'us-gdp-q'+quarter[1];
