@@ -6,6 +6,7 @@ export const localMinute=now=>Number(new Intl.DateTimeFormat('en-US',{timeZone:z
 export const isPublishingWindow=now=>localHour(now)*60+localMinute(now)>=315 && localHour(now)<17;
 export function refreshMode(saved,now=new Date()) {
   if(!isPublishingWindow(now)) return 'hold';
+  if(saved?.sourceChecks?.lottery && saved.sourceChecks.lottery.captureMode!=='isolated-cards')return 'full';
   return saved?.editionDate===localDate(now) && saved?.images?.capturedAt
     && localDate(new Date(saved.images.capturedAt))===localDate(now) ? 'news' : 'full';
 }
