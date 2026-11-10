@@ -38,7 +38,7 @@ export function isRecruitmentAd(item:Pick<NewsItem,'title'|'summary'>):boolean {
 }
 export function eligibleDaily(item:NewsItem):boolean {
   if(excludedHeadlines.has((item.date??'').slice(0,10)+'|'+item.title.normalize('NFKC').trim()))return false;
-  if(/종전\s*협상|우라늄\s*농축.{0,25}합의|미\s*의회.{0,20}규제법안|재산.{0,12}과세안\s*부결|과세\s*부결|국경.{0,12}검문소\s*재개방/.test(item.title))return false;
+  if(/종전\s*협상|전후\s*안보|새\s*안보\s*틀|군사\s*동맹|핵\s*협상|외교장관\s*회담|우라늄\s*농축.{0,25}합의|미\s*의회.{0,20}규제법안|재산.{0,12}과세안\s*부결|과세\s*부결|국경.{0,12}검문소\s*재개방/.test(item.title))return false;
   if(/빅세일|최대\s*\d+%\s*할인|사회봉사상.{0,15}후보\s*모집|에세이\s*공모전.{0,12}개최/.test(item.title))return false;
   const context=item.title+' '+(item.summary??'');
   if(/시니어.{0,12}협력\s*MOU|기업.{0,4}지정|화가.{0,35}전시회|빌보드.{0,20}앨범\s*차트/.test(item.title))return false;
