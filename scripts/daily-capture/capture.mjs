@@ -47,8 +47,31 @@ async function lottery(page, now) {
     const date=nextDraw.replace(/^[A-Z]+\//,'').replace(/\//g,' ');
     const drawTime=Date.parse(date+' 23:59:59 GMT-0800');
     if(!/\$[\d,.]+\s*(MILLION|BILLION)/i.test(amount)||!Number.isFinite(drawTime)||drawTime<+now||drawTime>+now+8*86400000) throw Error(`Invalid or outdated lottery card: ${id}`);
-    // Capture each official card to exclude the floating 'See all games' button.
-    images.push(await card.screenshot({animations:'disabled'}));
+    // Render only the official card in a clean document. A screenshot on the
+    // publisher page can contain a maintenance notice layered over valid data.
+    const markup=await card.evaluate(el=>{
+      const root=el.cloneNode(true);
+      const originals=[el,...el.querySelectorAll('*')];
+      const copies=[root,...root.querySelectorAll('*')];
+      originals.forEach((node,i)=>{
+        const styles=getComputedStyle(node);
+        const clone=copies[i];
+        for(const prop of styles)clone.style?.setProperty(prop,styles.getPropertyValue(prop));
+        if(node instanceof HTMLImageElement){clone.removeAttribute('srcset');clone.setAttribute('src',node.currentSrc||node.src);}
+        for(const attr of [...clone.attributes])if(attr.name.startsWith('on'))clone.removeAttribute(attr.name);
+      });
+      root.querySelectorAll('script,iframe,dialog').forEach(n=>n.remove());
+      root.style.margin='0';
+      return root.outerHTML;
+    });
+    const isolated=await page.context().newPage();
+    try {
+      await isolated.setContent('<meta charset="utf-8"><base href="https://www.calottery.com/"><body style="margin:0">'+markup+'</body>');
+      const clean=isolated.locator('#'+id);
+      await readyImages(clean);
+      if(await clean.getByText(/dismiss/i).count() || !(await clean.innerText()).includes(amount))throw Error('Unexpected lottery card contents');
+      images.push(await clean.screenshot({animations:'disabled'}));
+    } finally {await isolated.close();}
     details.push({game:id,jackpot:amount,nextDraw});
   }
   const resized=await Promise.all(images.map(bytes=>sharp(bytes).resize({width:318}).png().toBuffer()));
@@ -80,7 +103,7 @@ export async function captureDailyImages(now=new Date()) {
       }
       if(result.bytes.length<1500) throw Error(`Empty ${name} capture`);
       output[name]='data:image/png;base64,'+result.bytes.toString('base64');
-      checks[name]={url:SOURCES[name],checkedAt:new Date().toISOString(),details:result.details};
+      checks[name]={url:SOURCES[name],checkedAt:new Date().toISOString(),details:result.details,...(name==='lottery'?{captureMode:'isolated-cards'}:{})};
       console.log(`Captured ${name}: ${result.bytes.length} bytes`);
     }
     return {images:{...output,capturedAt:now.toISOString(),cropped:true},sourceChecks:checks};
