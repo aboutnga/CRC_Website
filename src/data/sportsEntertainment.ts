@@ -34,6 +34,7 @@ const PEOPLE_EXCLUDES = /정치|대선|선거|대통령|의원|민주당|공화�
 
 export function peopleCategory(title: string): PeopleCategory | null {
   if(/보수\s*연대|정당\s*연합|선거\s*(?:연대|유세)|정계\s*개편/.test(title))return null;
+  if (/안세영에게.{0,40}야마구치/.test(title) && /인터뷰/.test(title)) return null;
   if (PEOPLE_EXCLUDES.test(title)) return null;
   if (/폭격|미사일|전쟁|테러|스폰서에\s*장악/.test(title)) return null;
   // A foreign subject described as a Korean star's former coach/friend is not
