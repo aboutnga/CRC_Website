@@ -40,6 +40,7 @@ export function isRecruitmentAd(item:Pick<NewsItem,'title'|'summary'>):boolean {
 }
 export function eligibleDaily(item:NewsItem):boolean {
   if(commercialSolicitation(item))return false;
+  if(/(?:판매세|증세|과세).{0,20}(?:인상안|발의안).{0,12}(?:통과|부결)|지속가능\s*성장기업.{0,25}(?:1위|선정)|와이스.{0,20}MLB/.test(item.title))return false;
   if(/시진핑|조국통일|외교수장|핵군축|초당적\s*논의|한인의원|대사관.{0,30}(?:폐쇄|매물)|항행지원\s*시설\s*타격|군인묘역.*초병|AI\s*칩.{0,20}우회로.*차단|국부펀드\s*특별법/.test(item.title))return false;
   if(/모의유엔.{0,30}(?:입상|수상)|미주한상총연|재외동포단체\s*지원사업|방문\s*환영\s*만찬/.test(item.title))return false;
   if(excludedHeadlines.has((item.date??'').slice(0,10)+'|'+item.title.normalize('NFKC').trim()))return false;
