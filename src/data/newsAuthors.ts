@@ -1,6 +1,7 @@
 import type { NewsItem, NewsSource } from './newsFeeds';
 import { articlePage } from './newsDuplicates';
 import { isExcludedNews } from './newsEditorial';
+import { commercialSolicitation, nonNewsPage } from './newsContentPolicy';
 
 export type AuthorDecision = 'reporter' | 'commercial' | 'unverified';
 const commercial = /보험|부동산|브로커|에이전트|공인회계사|세무사|재정상담|대표|사장|사업가|사업자|기업인|업주|원장|변호사|컨설턴트|\b(?:agent|broker|realtor|business\s*owner|entrepreneur|CEO|president|founder|CPA|financial\s*advis[eo]r|consultant)\b/i;
@@ -75,7 +76,7 @@ export async function reporterNews(items:NewsItem[],sources:NewsSource[],inspect
   let next=0;
   const worker=async()=>{while(next<items.length){
     const index=next++,item=items[index],source=sourceById.get(item.sourceId);
-    if(!source || isExcludedNews(item))continue;
+    if(!source || isExcludedNews(item) || commercialSolicitation(item))continue;
     // This gate covers the four Korean-American media outlets. Official agency
     // releases and the separately curated English sources keep their own rules.
     const requireJournalist=(source.lang==='ko'||source.id==='daily-la') && education.test(item.title+' '+(item.summary??''));
@@ -85,7 +86,7 @@ export async function reporterNews(items:NewsItem[],sources:NewsSource[],inspect
     const key=source.id+':'+requireJournalist+':'+item.url+':'+item.title;
     let decision=inspect===articlePage?decisions.get(key):undefined;
     if(!decision){
-      decision=inspect(item,source).then(html=>html?articleAuthorDecision(html,requireJournalist):'unverified' as AuthorDecision).catch(()=>'unverified' as AuthorDecision);
+      decision=inspect(item,source).then(html=>html?(nonNewsPage(html)?'commercial':articleAuthorDecision(html,requireJournalist)):'unverified' as AuthorDecision).catch(()=>'unverified' as AuthorDecision);
       if(inspect===articlePage)decisions.set(key,decision);
     }
     const author=await decision;

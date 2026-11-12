@@ -6,7 +6,8 @@ import { US_COMMUNITY_TERMS } from './newsLocality';
 import { isExcludedNews } from './newsEditorial';
 import { isAllowedDailyHeadline } from './dailyLocality';
 import reviewedExclusions from './reviewedDailyHeadlines.json';
-const excludedHeadlines=new Set(reviewedExclusions);
+import { commercialSolicitation } from './newsContentPolicy';
+const excludedHeadlines=new Set(reviewedExclusions.map(key=>key.normalize('NFKC').trim()));
 
 const KOREAN_AMERICAN=/한인|미주|재미|교포|동포|한인타운|코리아타운|Korean.American/i;
 const US_LOCAL=/남가주|북가주|말리부|어바인|오리건|맨해튼|샌타|산타|샌디|샌프|라스베|브렌트우드|할리우드|헐리우드|벤투라|리버사이드|샌버나디노|패서디나|풀러턴|버뱅크|헌팅턴|롱비치|미시건|위스콘신|애리조나|메릴랜드|펜실베이니아|뉴잉글랜드|노스캐롤라이나|사우스캐롤라이나|보스턴|뉴욕|캐나다|미국인|미국행|미국산|달러|USC|UCLA|TSA|FDA|코스트코|소셜시큐리티/i;
@@ -28,6 +29,7 @@ export function isKoreanConsumerReport(item:NewsItem):boolean {
 export function dailyPriority(item:NewsItem):number {
   const text=item.title+' '+item.summary;
   if(KOREAN_AMERICAN.test(text))return 0;
+  if(/캘프레시|CalFresh|\bEBT\b/i.test(text))return 1;
   if(US_COMMUNITY_TERMS.test(text)||US_LOCAL.test(text))return 1;
   return 2;
 }
@@ -37,6 +39,9 @@ export function isRecruitmentAd(item:Pick<NewsItem,'title'|'summary'>):boolean {
   return /직원\s*모집|사원\s*모집|인재\s*모집|함께\s*일할|채용\s*(?:공고|광고|문의|상담)|\[\s*구인\s*\]|(?:^|[✅✔\s])구인\s+(?!난|시장|동향|건수|감소|증가)|모병관.*(?:직접\s*)?상담|\b(?:now hiring|help wanted|we are hiring|we're hiring|job openings|apply now for (?:a |the )?job)\b/i.test(text);
 }
 export function eligibleDaily(item:NewsItem):boolean {
+  if(commercialSolicitation(item))return false;
+  if(/시진핑|조국통일|외교수장|핵군축|초당적\s*논의|한인의원|대사관.{0,30}(?:폐쇄|매물)|항행지원\s*시설\s*타격|군인묘역.*초병|AI\s*칩.{0,20}우회로.*차단|국부펀드\s*특별법/.test(item.title))return false;
+  if(/모의유엔.{0,30}(?:입상|수상)|미주한상총연|재외동포단체\s*지원사업|방문\s*환영\s*만찬/.test(item.title))return false;
   if(excludedHeadlines.has((item.date??'').slice(0,10)+'|'+item.title.normalize('NFKC').trim()))return false;
   if(/종전\s*협상|전후\s*안보|새\s*안보\s*틀|군사\s*동맹|핵\s*협상|외교장관\s*회담|우라늄\s*농축.{0,25}합의|미\s*의회.{0,20}규제법안|재산.{0,12}과세안\s*부결|과세\s*부결|국경.{0,12}검문소\s*재개방/.test(item.title))return false;
   if(/빅세일|최대\s*\d+%\s*할인|사회봉사상.{0,15}후보\s*모집|에세이\s*공모전.{0,12}개최/.test(item.title))return false;
@@ -61,6 +66,10 @@ export function eligibleDaily(item:NewsItem):boolean {
 /** Known local incidents with heavily rewritten syndicated headlines. */
 export function dailyEvent(item:NewsItem):string|null {
   const headline=item.title;
+  if(/엔비디아/.test(headline)&&/13%/.test(headline)&&/급락/.test(headline))return 'nvidia-thirteen-percent-drop';
+  if(/어바인/.test(headline)&&/현관문/.test(headline)&&/발차기|발길질/.test(headline))return 'irvine-door-kick-challenge';
+  if(/(?:개|운반용)\s*우리/.test(headline)&&/생매장/.test(headline)&&/아기/.test(headline))return 'baby-buried-in-dog-carrier';
+  if(/남가주/.test(headline)&&/비/.test(headline)&&/기온/.test(headline))return 'socal-rain-temperature-drop';
   const month=headline.match(/(\d{1,2})월/)?.[1];
   if(month&&/美|미국/.test(headline)&&/소비자물가|CPI/i.test(headline)&&/0\.4%/.test(headline))return 'us-cpi-'+month+'-0.4';
   if(/월러/.test(headline)&&/12월/.test(headline)&&/50bp|빅스텝/i.test(headline))return 'waller-december-half-point';

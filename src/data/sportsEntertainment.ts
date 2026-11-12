@@ -4,6 +4,7 @@ import { retainedNews } from './newsHistory';
 import { sameStory } from './newsDuplicates';
 import { isExcludedNews } from './newsEditorial';
 import { reporterNews } from './newsAuthors';
+import { commercialSolicitation } from './newsContentPolicy';
 
 export type PeopleCategory = 'sports' | 'entertainment';
 export type PeopleNewsItem = NewsItem & { category: PeopleCategory };
@@ -33,6 +34,7 @@ const CONTEXTUAL_ENTERTAINERS = /배우\s*공유|공유.*(?:배우|영화|출연
 const PEOPLE_EXCLUDES = /정치|대선|선거|대통령|의원|민주당|공화당|국민의힘|정당|지지\s*선언|탄핵|국회|트럼프|바이든|이재명|윤석열|단체\s*소식|이취임|취임식|정기총회|창립\s*기념|기금\s*모금|후원\s*행사|제2의|닮은꼴|\b(?:Trump|Biden|endorsement|election)\b/i;
 
 export function peopleCategory(title: string): PeopleCategory | null {
+  if(commercialSolicitation({title,url:''}) || /닮은|왕즈이.{0,60}(?:진땀승|8강\s*진출)/.test(title))return null;
   if(/보수\s*연대|정당\s*연합|선거\s*(?:연대|유세)|정계\s*개편/.test(title))return null;
   if (/안세영에게.{0,40}야마구치/.test(title) && /인터뷰/.test(title)) return null;
   if (PEOPLE_EXCLUDES.test(title)) return null;

@@ -3,6 +3,8 @@ import type { NewsItem } from './newsFeeds';
 /** Ordering only: housing reporting stays news; obvious classifieds come last. */
 export function isDailyAdvertisement(item:Pick<NewsItem,'title'|'summary'|'url'>):boolean {
   const t=item.title;
+  if(/\b\d+\s*BED\s*\/\s*\d+\s*BATH\b/i.test(t))return true;
+  if(/아파트|콘도|스튜디오/.test(t)&&/깨끗하고|교통\s*편리|안전하고|위치.{0,8}컨디션/.test(t))return true;
   if(/\/ad_(?:rent|property|proshop|market|car|job)\//i.test(item.url))return true;
   if(/\[(?:광고|유료광고|협찬|sponsored|advertisement)\]|\b(?:sponsored content|paid advertisement)\b/i.test(t))return true;
   const housing=/아파트|콘도|베츄러|베드룸|베드|배드|스튜디오|민박|하숙|룸메이트|\b(?:apartment|apt|condo|studio|bedroom|roommate)\b/i.test(t);
