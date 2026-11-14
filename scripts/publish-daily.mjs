@@ -12,19 +12,26 @@ async function api(path,method='GET',body) {
   if(!response.ok) throw Error(`${method} ${path}: HTTP ${response.status}`);
   return response.json();
 }
-async function existing(path) {
-  const file=await api(`/contents/${path}?ref=${encodeURIComponent(branch)}`);
-  return JSON.parse(Buffer.from(file.content,'base64').toString('utf8'));
+async function existing(path, revision) {
+  // The raw representation includes the contents even when an edition exceeds 1 MiB.
+  const response=await fetch(`${root}/contents/${path}?ref=${encodeURIComponent(revision)}`,{
+    headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github.raw+json','X-GitHub-Api-Version':'2022-11-28'},
+    signal:AbortSignal.timeout(30000),
+  });
+  if(!response.ok) throw Error(`Read ${path}: HTTP ${response.status}`);
+  const saved=await response.json();
+  if(typeof saved.generatedAt!=='string') throw Error(`Missing collection timestamp in ${path}`);
+  return saved;
 }
 for(let attempt=1;attempt<=3;attempt++) {
   const parent=await api(`/commits/${encodeURIComponent(branch)}`);
-  const priorQueue=await existing('src/data/dailyPending.json');
+  const priorQueue=await existing('src/data/dailyPending.json',parent.sha);
   if(priorQueue?.generatedAt>=plan.generatedAt) {console.log('A newer collection is already saved.');break;}
   const publish=plan.mode!=='hold' && canPublishEdition(edition,new Date());
   if(publish && !edition?.images?.cropped) throw Error('No validated images to publish');
   const entries=[{path:'src/data/dailyPending.json',mode:'100644',type:'blob',content:pendingContent}];
   if(publish) {
-    const prior=await existing('src/data/dailyEdition.json');
+    const prior=await existing('src/data/dailyEdition.json',parent.sha);
     if(!prior?.generatedAt || prior.generatedAt<edition.generatedAt) entries.push({path:'src/data/dailyEdition.json',mode:'100644',type:'blob',content});
   }
   const tree=await api('/git/trees','POST',{base_tree:parent.commit.tree.sha,tree:entries});

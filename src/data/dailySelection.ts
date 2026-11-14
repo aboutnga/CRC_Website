@@ -35,7 +35,8 @@ export function dailySelection(items: NewsItem[], now: Date, korean: boolean) {
   // Weekend ads may still fill only unused places in the original 40 slots.
   const reserved = unique.filter(item => !isDailyAdvertisement(item)
     && (today >= '2026-11-09' || isKoreanConsumerReport(item))).length;
-  const limit = Math.max(40, reserved);
+  const previousLimit = Math.max(40, reserved);
+  const limit = today >= '2026-11-14' ? Math.min(45, previousLimit) : previousLimit;
   const selected=priority.slice(0,limit).sort((a,b)=>
     Number(isDailyAdvertisement(a))-Number(isDailyAdvertisement(b))
     || (b.publicationDay??editionDate(new Date(b.date!))).localeCompare(a.publicationDay??editionDate(new Date(a.date!)))
