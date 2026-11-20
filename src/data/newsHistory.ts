@@ -1,7 +1,7 @@
 import type { NewsItem, NewsSource } from './newsFeeds';
 
 /** Validate a previous build's public snapshot; dates are never changed to look fresh. */
-export function retainedNews(value: unknown, sources: NewsSource[], now = Date.now()): NewsItem[] {
+export function retainedNews(value: unknown, sources: NewsSource[], now = Date.now(), useSummaryForLocality = false): NewsItem[] {
   if (!value || typeof value !== 'object' || !Array.isArray((value as { items?: unknown }).items)) return [];
   const sourceById = new Map(sources.map((source) => [source.id, source]));
   return (value as { items: NewsItem[] }).items.filter((item) => {
@@ -11,7 +11,7 @@ export function retainedNews(value: unknown, sources: NewsSource[], now = Date.n
     if (!source || !Number.isFinite(date) || date < now - 180 * 86400000 || date > now + 86400000) return false;
     // Reapply today's editorial rules so removed subjects cannot reappear from a cache.
     if (source.keywords && !source.keywords.test(item.title)) return false;
-    if (source.requiredKeywords && !source.requiredKeywords.test(item.title)) return false;
+    if (source.requiredKeywords && !source.requiredKeywords.test(useSummaryForLocality ? item.title+' '+(item.summary??'') : item.title)) return false;
     if (source.excludeKeywords?.test(item.title)) return false;
     try {
       const url = new URL(item.url);

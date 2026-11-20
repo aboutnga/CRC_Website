@@ -94,7 +94,7 @@ export async function collectDailyNews(now = new Date(), saved:DailyNews|null = 
   // Pick up direct publisher stories already found by the fraud collection as well.
   try {
     const snapshot=await fetch('https://crcnow.org/news-feed.json',{signal:AbortSignal.timeout(8000)});
-    if(snapshot.ok) previous.push(...retainedNews(await snapshot.json(),newsSources.filter(s=>s.lang==='ko'),+now));
+    if(snapshot.ok) previous.push(...retainedNews(await snapshot.json(),newsSources.filter(s=>s.lang==='ko'),+now,true));
   } catch { /* The publishers' feeds above are still available. */ }
   const cutoff=+now-7*86400000;
   const recentFraud=previous.filter(item=>item.date&&Date.parse(item.date)>=+now-2*86400000

@@ -498,10 +498,10 @@ export function fetchAllNews(perSource = 8): Promise<NewsFeedResult> {
 
 async function gatherNews(perSource: number): Promise<NewsFeedResult> {
   // Preserve recent stories if a publisher or Google temporarily fails at build time.
-  let previous = retainedNews(fallbackNews, newsSources);
+  let previous = retainedNews(fallbackNews, newsSources, Date.now(), true);
   try {
     const response = await fetch('https://crcnow.org/news-feed.json', { signal: AbortSignal.timeout(8000) });
-    if (response.ok) previous = [...retainedNews(await response.json(), newsSources), ...previous];
+    if (response.ok) previous = [...retainedNews(await response.json(), newsSources, Date.now(), true), ...previous];
   } catch { /* The checked-in snapshot also supports the first deploy and offline builds. */ }
   const results = await Promise.allSettled(
     newsSources.map(async (source) => {

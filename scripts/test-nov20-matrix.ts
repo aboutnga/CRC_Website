@@ -1,3 +1,4 @@
+import {retainedNews} from '../src/data/newsHistory';
 import assert from 'node:assert/strict';
 import {eligibleDaily,deduplicateDailyEvents} from '../src/data/dailyEditorial';
 import {isExcludedNews} from '../src/data/newsEditorial';
@@ -39,3 +40,7 @@ for(const source of newsSources.filter(s=>s.lang==='ko')){
 assert(!eligibleDaily(story('글로벌어린이재단 감사송년회…12월 4일 활동보고·공연')));
 assert(eligibleDaily(story('LA 재단 후원금 횡령 기소')));
 assert.equal(deduplicateDailyEvents([story('패서디나 옛 99센트 매장 부지에 289가구 아파트 신축 추진'),story('패서디나에 289가구 아파트 신축 추진','2026-11-20T06:24:00Z')]).length,1);
+
+const contextual={...story('온수기 제조물 책임 소송'),summary:'LA 소비자 피해 관련 보도'};
+assert.equal(retainedNews({items:[contextual]},newsSources,+new Date('2026-11-20T18:00:00Z'),true).length,1,'collection retains verified article context after daily edition changes');
+assert.equal(retainedNews({items:[{...contextual,summary:'국내 소비자 피해'}]},newsSources,+new Date('2026-11-20T18:00:00Z'),true).length,0);
