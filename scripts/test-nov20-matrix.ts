@@ -35,3 +35,7 @@ for(const source of newsSources.filter(s=>s.lang==='ko')){
  assert(source.keywords?.test('LA 소비자 피해: 제조물 책임 소송'));
  assert(source.keywords?.test('가주 판매 제품 리콜'));
 }
+
+assert(!eligibleDaily(story('글로벌어린이재단 감사송년회…12월 4일 활동보고·공연')));
+assert(eligibleDaily(story('LA 재단 후원금 횡령 기소')));
+assert.equal(deduplicateDailyEvents([story('패서디나 옛 99센트 매장 부지에 289가구 아파트 신축 추진'),story('패서디나에 289가구 아파트 신축 추진','2026-11-20T06:24:00Z')]).length,1);

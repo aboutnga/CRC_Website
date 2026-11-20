@@ -73,6 +73,8 @@ export function eligibleDaily(item:NewsItem):boolean {
 /** Known local incidents with heavily rewritten syndicated headlines. */
 export function dailyEvent(item:NewsItem):string|null {
   const headline=item.title;
+  if(/패서디나/.test(headline)&&/289가구/.test(headline)&&/아파트/.test(headline))return 'pasadena-289-apartments';
+  if(/하마/.test(headline)&&/사망/.test(headline)&&/스타|피오나/.test(headline))return 'fiona-hippo-death';
   if(/버뱅크공항/.test(headline)&&/관제사/.test(headline)&&/착륙/.test(headline))return 'burbank-no-controller-landing';
   if(/보이저\s*1호/.test(headline)&&/1광일/.test(headline))return 'voyager-one-light-day';
   if(/LA|East LA/i.test(headline)&&/지진/.test(headline)&&/4\.2/.test(headline))return 'east-la-4.2-earthquake';
