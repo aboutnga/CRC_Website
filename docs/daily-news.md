@@ -46,3 +46,11 @@ Apartment advertisements are eligible only for Saturday and Sunday editions in L
 ## Education bylines
 
 Education, admissions, academy, scholarship and student-program articles in 생활정보 require a verified journalist byline or publisher journalist profile. Exclude academy-director (원장), business-owner (대표), consultant and ASK미국 education columns. Hold education stories with an unverified byline, including when a publisher lookup fails. A journalist may quote an educator in independent reporting. Apply the same rule when rebuilding saved editions.
+
+
+## November 20 matrix clarification
+- Informative national-security and diplomatic reporting is eligible, including 미중러 정상 자리배치. Campaigns, endorsements, partisan promotion and voting coverage remain excluded.
+- Prioritize LA/OC/Southern California and practical national information. Exclude nonlocal organization campaigns such as 미주총연 재외동포 DB 등록.
+- Daily includes newly published eligible Korean American scam/consumer-harm reports. The separate scam page retains them as a collection; they are not exclusive categories.
+- Unseen recent scam reports use the same first-morning 48-hour window as other reporting. Previously displayed reports are not relabeled or recycled into today's Daily list.
+- Deduplicate same events across publishers, keep earliest eligible report, then sort newest first. Main edition remains capped at 45.

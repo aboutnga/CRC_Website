@@ -44,7 +44,7 @@ export function peopleCategory(title: string): PeopleCategory | null {
   title=title.replace(/['"‘“][^'"’”]{0,80}(?:스승|동료|절친|라이벌|맞수)[^'"’”]{0,20}['"’”]/g,'');
   if (/(?:도|까지)\s*(?:반했다|놀랐다|감탄했다)/.test(title)) return null;
   // A name mentioned only in another person's quotation is not the subject.
-  const outsideQuotes=title.replace(/["“][^"”]{4,}["”]|‘[^’]{4,}’/g,'');
+  const outsideQuotes=title.replace(/["“][^"”]{4,}["”]|‘[^’]{4,}’|'[^']{4,}'/g,'');
   if (!ATHLETES.test(outsideQuotes) && !ENTERTAINERS.test(outsideQuotes) && !CONTEXTUAL_ENTERTAINERS.test(outsideQuotes)) return null;
   if (/^(?:[^…]*?(?:안무|작곡|작사|제작)).*?(?:…|\.\.)/.test(title)) {
     const subject=title.split(/…|\.\./).slice(1).join(' ');

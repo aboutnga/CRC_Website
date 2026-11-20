@@ -15,6 +15,14 @@ const BUSINESS_PROMOTION = /(?:보험|부동산|융자|중개|브로커|에이�
 const COMMERCIAL_BYLINE = /(?:글|필자|기고|칼럼|문의)\s*[:：][^\n]{0,60}(?:보험|부동산|브로커|에이전트|공인회계사)|\bby\s+[^\n]{0,60},\s*(?:realtor|real\s+estate\s+(?:agent|broker)|insurance\s+agent)\b/i;
 const VOTING = /개표|유권자|투표권|투표\s*(?:자격|제한|소송|등록)|\b(?:voters?|voting|vote\s*count(?:ing)?)\b/i;
 
+/** Security/diplomatic reporting is not a campaign endorsement. Explicit electoral
+ * or partisan coverage still loses this exception, even when it invokes security. */
+export function isSecurityReport(item: Pick<NewsItem,'title'|'summary'>): boolean {
+  const text=item.title+' '+(item.summary??'');
+  return /국가\s*안보|국가\s*안전|국제\s*안보|핵군축|핵\s*협상|군사\s*동맹|전후\s*안보|안보\s*틀|외교장관\s*회담|정상.{0,16}자리\s*배치|\bnational security\b/i.test(item.title)
+    && !/선거|대선|총선|유세|후보|지지\s*선언|투표|발의안|민주당|공화당|국민의힘|정당|\b(?:campaign|election|endorsement|partisan|ballot|voting)\b/i.test(text);
+}
+
 // Exclude promotion of outside education/admissions/career programs across all
 // publishers. Topic alone is insufficient: retain ordinary education reporting.
 const EDUCATION_SERVICE = /인턴십|인턴쉽|대입|대학\s*입학|입시|학자금|장학금|진학|진로|청소년|학생|멘토링|멘토십|교육\s*프로그램|\b(?:internships?|college\s+admissions?|financial\s+aid|scholarships?|students?|youth|mentoring|mentorship|career\s+(?:coaching|counseling))\b/i;
@@ -49,7 +57,7 @@ export function isExcludedNews(item: Pick<NewsItem, 'title' | 'summary' | 'url'>
   const text = (item.title + ' ' + (item.summary ?? '')).normalize('NFKC');
   if (EDUCATION_SERVICE.test(text) && PROGRAM_PROMOTION.test(text)) return true;
   if (ENFORCEMENT.test(text) || ENGLISH_ENFORCEMENT.test(text)) return true;
-  if (POLITICS.test(text) || VOTING.test(text) || BUSINESS_COLUMNS.test(text) || BUSINESS_PROMOTION.test(text) || COMMERCIAL_BYLINE.test(text)) return true;
+  if ((POLITICS.test(text) && !isSecurityReport(item)) || VOTING.test(text) || BUSINESS_COLUMNS.test(text) || BUSINESS_PROMOTION.test(text) || COMMERCIAL_BYLINE.test(text)) return true;
   try {
     const url = new URL(item.url);
     const canonical = `https://${url.hostname.replace(/^www\./, '')}${url.pathname.replace(/\/$/, '')}`;

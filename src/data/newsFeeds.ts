@@ -132,8 +132,11 @@ const KO_ENTERTAINMENT_TERMS = /Oh!|오!쎈|연예|소속사|드라마|예능|�
 // These still require a US/community cue. Do not
 // match a bare "유출" or "탈취": those also describe product leaks and trade disputes.
 const KO_CYBER_TERMS = /해킹|해커|랜섬웨어|악성코드|피싱|(?:개인|신상|고객|회원|계정|금융|카드|결제)\s*(?:정보|데이터)(?:가|를|의)?\s*(?:유출|탈취|도용)|(?:계정|비밀번호|패스워드)\s*(?:정보\s*)?(?:유출|탈취|도용)/i;
-export const KO_NEWS_TERMS = new RegExp(`${KO_FRAUD_TERMS.source}|${KO_CYBER_TERMS.source}`, 'iu');
+export const KO_NEWS_TERMS = new RegExp(`${KO_FRAUD_TERMS.source}|${KO_CYBER_TERMS.source}|환불|리콜|소비자\\s*피해|제조물\\s*책임|(?:은행|Bank).*벌금`, 'iu');
 
+function koreanConsumerFeed(domain:string):string {
+ return googleNews('site:'+domain+' (환불 OR 리콜 OR 소비자 피해 OR 제조물 책임) when:7d','ko','US');
+}
 function koreanCyberFeed(domain: string): string {
   return googleNews(`site:${domain} (해킹 OR 해커 OR 개인정보 유출 OR 정보유출 OR 랜섬웨어 OR 계정 탈취) when:180d`, 'ko', 'US');
 }
@@ -225,7 +228,7 @@ export const newsSources: NewsSource[] = [
   {
     id: 'news-koreadaily',
     label: { en: 'Korea Daily', ko: '미주중앙일보' },
-    urls: [googleNews('site:koreadaily.com 사기', 'ko', 'US'), koreanCyberFeed('koreadaily.com')],
+    urls: [googleNews('site:koreadaily.com 사기', 'ko', 'US'), koreanCyberFeed('koreadaily.com'), koreanConsumerFeed('koreadaily.com')],
     homepage: 'https://www.koreadaily.com/',
     publisherPerItem: true,
     allowPublishers: allowedKoreanPublishers,
@@ -238,7 +241,7 @@ export const newsSources: NewsSource[] = [
   {
     id: 'news-koreatimes',
     label: { en: 'The Korea Times (US)', ko: '미주한국일보' },
-    urls: [googleNews('site:koreatimes.com (사기 OR 피싱 OR 사칭 OR 스캠 OR 신분도용) (미국 OR 한인 OR LA OR 캘리포니아 OR 연방) -연예 -스포츠 when:180d', 'ko', 'US'), koreanCyberFeed('koreatimes.com')],
+    urls: [googleNews('site:koreatimes.com (사기 OR 피싱 OR 사칭 OR 스캠 OR 신분도용) (미국 OR 한인 OR LA OR 캘리포니아 OR 연방) -연예 -스포츠 when:180d', 'ko', 'US'), koreanCyberFeed('koreatimes.com'), koreanConsumerFeed('koreatimes.com')],
     homepage: 'https://www.koreatimes.com/',
     publisherPerItem: true,
     allowPublishers: allowedKoreanPublishers,
@@ -251,7 +254,7 @@ export const newsSources: NewsSource[] = [
   {
     id: 'news-radiokorea',
     label: { en: 'Radio Korea', ko: '라디오코리아' },
-    urls: [googleNews('site:radiokorea.com 사기', 'ko', 'US'), googleNews('site:radiokorea.com (사기 OR 피싱 OR 사칭 OR 스캠 OR 신분도용) when:180d', 'ko', 'US'), koreanCyberFeed('radiokorea.com')],
+    urls: [googleNews('site:radiokorea.com 사기', 'ko', 'US'), googleNews('site:radiokorea.com (사기 OR 피싱 OR 사칭 OR 스캠 OR 신분도용) when:180d', 'ko', 'US'), koreanCyberFeed('radiokorea.com'), koreanConsumerFeed('radiokorea.com')],
     homepage: 'https://www.radiokorea.com/news/',
     publisherPerItem: true,
     allowPublishers: allowedKoreanPublishers,

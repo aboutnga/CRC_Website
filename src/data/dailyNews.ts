@@ -9,7 +9,7 @@ import { editionDate, latestFortune } from './dailySchedule';
 import { isAllowedDailyHeadline } from './dailyLocality';
 import { retainedNews } from './newsHistory';
 import fallback from './dailyFallback.json';
-import { isExcludedNews } from './newsEditorial';
+import { isExcludedNews, isSecurityReport } from './newsEditorial';
 import { reporterNews } from './newsAuthors';
 import { collectPeopleNews, selectPeopleNews, peopleSources } from './sportsEntertainment';
 import peopleSeed from './sportsEntertainmentSeed.json';
@@ -41,7 +41,7 @@ const englishSources: NewsSource[] = newsSources.filter(s => s.id === 'news-la')
 export interface DailyNews { markets?:MarketQuote[]; items:NewsItem[]; fortune:NewsItem|null; stocks:NewsItem|null; sportsEntertainment?:NewsItem[]; generatedAt?:string; editionDate?:string; liveItemCount?:number; publishedHistory?:Record<string,string>; collectionCounts?:Record<string,number> }
 export function eligibleDailyItem(item:NewsItem):boolean {
   if(item.sourceId==='daily-la' && /NFL|draft picks?|Jaguars|Falcons|New Delhi/i.test(item.title))return false;
-  return !isRecruitmentAd(item) && isAllowedDailyHeadline(item) && (item.sourceId==='daily-la' ? !isExcludedNews(item) : eligibleDaily(item));
+  return !isRecruitmentAd(item) && (isSecurityReport(item) || isAllowedDailyHeadline(item)) && (item.sourceId==='daily-la' ? !isExcludedNews(item) : eligibleDaily(item));
 }
 let pending: Promise<DailyNews>;
 // Ordinary builds only display the published edition; held stories stay out of the page.

@@ -3,7 +3,7 @@ import { sameStory } from './newsDuplicates';
 import type { NewsItem } from './newsFeeds';
 import { newsSources } from './newsFeeds';
 import { US_COMMUNITY_TERMS } from './newsLocality';
-import { isExcludedNews } from './newsEditorial';
+import { isExcludedNews, isSecurityReport } from './newsEditorial';
 import { isAllowedDailyHeadline } from './dailyLocality';
 import reviewedExclusions from './reviewedDailyHeadlines.json';
 import { commercialSolicitation } from './newsContentPolicy';
@@ -29,6 +29,7 @@ export function isKoreanConsumerReport(item:NewsItem):boolean {
 export function dailyPriority(item:NewsItem):number {
   const text=item.title+' '+item.summary;
   if(KOREAN_AMERICAN.test(text))return 0;
+  if(isSecurityReport(item))return 1;
   if(/캘프레시|CalFresh|\bEBT\b/i.test(text))return 1;
   if(US_COMMUNITY_TERMS.test(text)||US_LOCAL.test(text))return 1;
   return 2;
@@ -39,34 +40,46 @@ export function isRecruitmentAd(item:Pick<NewsItem,'title'|'summary'>):boolean {
   return /직원\s*모집|사원\s*모집|인재\s*모집|함께\s*일할|채용\s*(?:공고|광고|문의|상담)|\[\s*구인\s*\]|(?:^|[✅✔\s])구인\s+(?!난|시장|동향|건수|감소|증가)|모병관.*(?:직접\s*)?상담|\b(?:now hiring|help wanted|we are hiring|we're hiring|job openings|apply now for (?:a |the )?job)\b/i.test(text);
 }
 export function eligibleDaily(item:NewsItem):boolean {
+  const security=isSecurityReport(item);
+  if(/시의회.{0,25}취임.{0,25}견제|재외동포청.{0,15}사업\s*지원\s*수요조사/.test(item.title))return false;
+  if(/랜스\s*브로드웨이/.test(item.title))return false;
+  if(/다울정.*행사.*관광명소/.test(item.title))return false;
+  if(!security && /러\s*드론|푸틴.*복수/.test(item.title))return false;
   if(commercialSolicitation(item))return false;
   if(/(?:판매세|증세|과세).{0,20}(?:인상안|발의안).{0,12}(?:통과|부결)|지속가능\s*성장기업.{0,25}(?:1위|선정)|와이스.{0,20}MLB/.test(item.title))return false;
-  if(/시진핑|조국통일|외교수장|핵군축|초당적\s*논의|한인의원|대사관.{0,30}(?:폐쇄|매물)|항행지원\s*시설\s*타격|군인묘역.*초병|AI\s*칩.{0,20}우회로.*차단|국부펀드\s*특별법/.test(item.title))return false;
+  if(!security && /시진핑|조국통일|외교수장|핵군축|초당적\s*논의|한인의원|대사관.{0,30}(?:폐쇄|매물)|항행지원\s*시설\s*타격|군인묘역.*초병|AI\s*칩.{0,20}우회로.*차단|국부펀드\s*특별법/.test(item.title))return false;
   if(/모의유엔.{0,30}(?:입상|수상)|미주한상총연|재외동포단체\s*지원사업|방문\s*환영\s*만찬/.test(item.title))return false;
   if(excludedHeadlines.has((item.date??'').slice(0,10)+'|'+item.title.normalize('NFKC').trim()))return false;
-  if(/종전\s*협상|전후\s*안보|새\s*안보\s*틀|군사\s*동맹|핵\s*협상|외교장관\s*회담|우라늄\s*농축.{0,25}합의|미\s*의회.{0,20}규제법안|재산.{0,12}과세안\s*부결|과세\s*부결|국경.{0,12}검문소\s*재개방/.test(item.title))return false;
+  if(!security && /종전\s*협상|전후\s*안보|새\s*안보\s*틀|군사\s*동맹|핵\s*협상|외교장관\s*회담|우라늄\s*농축.{0,25}합의|미\s*의회.{0,20}규제법안|재산.{0,12}과세안\s*부결|과세\s*부결|국경.{0,12}검문소\s*재개방/.test(item.title))return false;
   if(/빅세일|최대\s*\d+%\s*할인|사회봉사상.{0,15}후보\s*모집|에세이\s*공모전.{0,12}개최/.test(item.title))return false;
   const context=item.title+' '+(item.summary??'');
   if(/시니어.{0,12}협력\s*MOU|기업.{0,4}지정|화가.{0,35}전시회|빌보드.{0,20}앨범\s*차트/.test(item.title))return false;
-  if(/(?:EU|유럽연합).{0,15}출입국시스템|(?:인도|이란).{0,25}(?:공군|작전|간첩)|美\s*제재.{0,8}자체\s*개발/.test(item.title))return false;
-  if(/우크라(?:이나)?.{0,20}지원|팔레스타인\s*국기|다카이치.{0,25}악수|추가관세.{0,30}유예|보수\s*연대|선전\s*APEC|외교부|의회\s*브리핑/.test(item.title))return false;
+  if(!security && /(?:EU|유럽연합).{0,15}출입국시스템|(?:인도|이란).{0,25}(?:공군|작전|간첩)|美\s*제재.{0,8}자체\s*개발/.test(item.title))return false;
+  if(!security && /우크라(?:이나)?.{0,20}지원|팔레스타인\s*국기|다카이치.{0,25}악수|추가관세.{0,30}유예|보수\s*연대|선전\s*APEC|외교부|의회\s*브리핑/.test(item.title))return false;
   if(/칼리지\s*페어|college\s*fair/i.test(context)&&/주최|후원|참가|등록|\[알림\]/.test(context))return false;
   if(/아이캠프|초대전|한미우호상|세계\s*회계사대회|\[롤드컵/.test(item.title))return false;
   if(/재정설계|금융\s*전문가/.test(context)&&/포브스.{0,18}최고|전문가.{0,14}합류/.test(item.title))return false;
   if(/젠슨\s*황/.test(context)&&/불륜|포섭|간첩/.test(context)&&!/주가|급락|하락세/.test(item.title))return false;
   if(/농구감독|삼성화재.{0,18}(?:영국|英)/.test(item.title)&&!US_COMMUNITY_TERMS.test(item.title))return false;
   if(isRecruitmentAd(item)||isOrganizationNews(item))return false;
-  if(!isAllowedDailyHeadline(item))return false;
+  if(!security && !isAllowedDailyHeadline(item))return false;
   if(/보러\s*오세요|실질적\s*기여\s*약속|외식협.*세미나|봄\s*마켓\s*준비|의료.*시대\s*연다|센터메디컬그룹.*행사|단체.*교류\s*확대|풀러턴.*횡성군|지속.*위로\s*전할/.test(item.title))return false;
-  if(isExcludedNews(item)||ANNOUNCEMENTS.test(item.title)||NON_DAILY.test(item.title)||PROMOTIONS.test(item.title+' '+item.summary))return false;
+  if(isExcludedNews(item)||ANNOUNCEMENTS.test(item.title)||(!security&&NON_DAILY.test(item.title))||PROMOTIONS.test(item.title+' '+item.summary))return false;
   // Health information is eligible without a U.S. place name; a domestic Korean
   // incident is not automatically useful solely because it mentions a house or flight.
-  return isKoreanConsumerReport(item)||dailyPriority(item)<2||/건강.*(?:정보|관리)|혈액|질환|치매|당뇨|백신|한국행|한국.*(?:병원|건강보험|입국|여행)|재외|복수국적|국적.*(?:법|신청)|환율|송금/.test(item.title);
+  return security||isKoreanConsumerReport(item)||dailyPriority(item)<2||/건강.*(?:정보|관리)|혈액|질환|치매|당뇨|백신|한국행|한국.*(?:병원|건강보험|입국|여행)|재외|복수국적|국적.*(?:법|신청)|환율|송금/.test(item.title);
 }
 
 /** Known local incidents with heavily rewritten syndicated headlines. */
 export function dailyEvent(item:NewsItem):string|null {
   const headline=item.title;
+  if(/버뱅크공항/.test(headline)&&/관제사/.test(headline)&&/착륙/.test(headline))return 'burbank-no-controller-landing';
+  if(/보이저\s*1호/.test(headline)&&/1광일/.test(headline))return 'voyager-one-light-day';
+  if(/LA|East LA/i.test(headline)&&/지진/.test(headline)&&/4\.2/.test(headline))return 'east-la-4.2-earthquake';
+  if(/인앤아웃/.test(headline)&&/한인/.test(headline)&&/소송/.test(headline))return 'in-n-out-korean-assault-lawsuit';
+  if(/399/.test(headline)&&/항공|프론티어|프런티어/.test(headline)&&/무제한/.test(headline))return 'frontier-399-unlimited-pass';
+  if(/추수감사절|Thanksgiving/i.test(headline)&&/식탁|칠면조|물가|부담/.test(headline))return 'thanksgiving-meal-cost';
+  if(/알라딘/.test(headline)&&/서점/.test(headline)&&/폐업|역사\s*속/.test(headline))return 'aladdin-bookstore-closure';
   if(/엔비디아/.test(headline)&&/13%/.test(headline)&&/급락/.test(headline))return 'nvidia-thirteen-percent-drop';
   if(/어바인/.test(headline)&&/현관문/.test(headline)&&/발차기|발길질/.test(headline))return 'irvine-door-kick-challenge';
   if(/(?:개|운반용)\s*우리/.test(headline)&&/생매장/.test(headline)&&/아기/.test(headline))return 'baby-buried-in-dog-carrier';

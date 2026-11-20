@@ -1,6 +1,8 @@
 // CRC matrix: exclude organizational/foundation publicity, even when reporter-written.
 export function isOrganizationNews(item:{title:string;summary?:string}):boolean {
   const title=item.title.normalize('NFKC');
+  if(/미주총연|미주한인회총연합회/.test(title) && /캠페인|등록|행사|총회/.test(title))return true;
+  if(/협회|소사이어티|시니어센터|한인\s*상의/.test(title) && /전시회|세미나|특강|캠페인|명예의\s*거리|관광명소/.test(title))return true;
   // Bilingual directory entries repeat an organization's name in English.
   if(/(?:협회|지회|재단|한인회)\s*[-:·(]?\s*[A-Z][A-Za-z. &'-]+\b(?:ASSO\.?|ASSOC\.?|ASSOCIATION|FOUNDATION|CHAPTER)\s*[.)]*$/i.test(title))return true;
   if(/한인\s*상의|상공회의소|협회|재단/.test(title) && /골프\s*대회|초청\s*대회/.test(title) && /성료|개최|주최|초청|후원/.test(title))return true;

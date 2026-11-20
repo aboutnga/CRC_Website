@@ -3,7 +3,7 @@ import type { NewsItem } from './newsFeeds';
 import { headlineKey } from './newsDuplicates';
 import { editionDate } from './dailySchedule';
 import { dailySelection } from './dailySelection';
-import { deduplicateDailyEvents, isKoreanConsumerReport } from './dailyEditorial';
+import { deduplicateDailyEvents } from './dailyEditorial';
 
 const keys=(item:NewsItem)=>['title:'+headlineKey(item.title),'url:'+item.url];
 /** Only called when preparing a publishable edition; overnight discoveries are not marked published. */
@@ -22,9 +22,9 @@ export function prepareDailyPublication(news:DailyNews,saved:DailyNews|null,now:
     const regular=dailySelection([item],now,item.sourceId!=='daily-la').items.length>0;
     // A late-discovered recent story is eligible for its first morning release,
     // not as daytime backfill. Never relabel its original publisher date.
-    const afterLastEdition=!!saved?.generatedAt && !!item.date && Date.parse(item.date)>Date.parse(saved.generatedAt);
-    const allowMorningBackfill=!isKoreanConsumerReport(item)||afterLastEdition;
-    const unseenMorning=morning&&!first&&allowMorningBackfill&&!!item.date&&Date.parse(item.date)>=+now-2*86400000&&Date.parse(item.date)<=+now;
+    // Fraud reports follow the same first-publication window as other news.
+    // The ledger still prevents yesterday's displayed reports being recycled.
+    const unseenMorning=morning&&!first&&!!item.date&&Date.parse(item.date)>=+now-2*86400000&&Date.parse(item.date)<=+now;
     if(!first&&!regular&&!unseenMorning)return [];
     return [{...item,firstPublishedEdition:first??today}];
   });

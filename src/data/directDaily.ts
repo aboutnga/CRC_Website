@@ -1,3 +1,4 @@
+import { isSecurityReport } from './newsEditorial';
 import type { NewsItem, NewsSource } from './newsFeeds';
 import { plainText } from './koreatownPress';
 import { articlePage } from './newsDuplicates';
@@ -49,7 +50,7 @@ export function parseDirectArticle(html:string,url:string,source:NewsSource):New
   const section=[meta(html,'article:section'),meta(html,'article:section2')].join(' ');
   const location=html.match(/<div\b[^>]*id=["']location_arti["'][^>]*>([\s\S]*?)<\/div>/)?.[1]??'';
   const health=/건강|혈액|치료|예방|질환|검진/.test(title);
-  if(/정치|오피니언|사설|칼럼|연예|스포츠|종교/.test(section+plainText(location))||/\/section\/(?:113|103|109|111|102\/220|108\/259|105\/245)(?:[/'"])/.test(location)||(/\/102\/217/.test(location)&&!health)) {
+  if((!isSecurityReport({title,summary:meta(html,'og:description')}) && /정치/.test(section+plainText(location))) || /오피니언|사설|칼럼|연예|스포츠|종교/.test(section+plainText(location))||/\/section\/(?:113|103|109|111|102\/220|108\/259|105\/245)(?:[/'"])/.test(location)||(/\/102\/217/.test(location)&&!health)) {
     rejected.add(source.id+':'+headlineKey(title));return null;
   }
   const summary=fraudContext(title,meta(html,'og:description').slice(0,450),html);
