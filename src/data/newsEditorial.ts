@@ -2,7 +2,7 @@ import type { NewsItem } from './newsFeeds';
 
 // CRC editorial scope: exclude ICE and immigration-enforcement coverage.
 // Keep ordinary immigration benefits, citizenship services and unrelated words.
-const ENFORCEMENT = /\bICE\b(?!\s+(?:cream|cubes?|rink|skating)\b)|\bI\.C\.E\b|이민\s*(?:세관\s*)?단속|이민세관국|이민세관집행국|이민관세집행국|이민세관수사국/;
+const ENFORCEMENT = /추방\s*재판|\bICE\b(?!\s+(?:cream|cubes?|rink|skating)\b)|\bI\.C\.E\b|이민\s*(?:세관\s*)?단속|이민세관국|이민세관집행국|이민관세집행국|이민세관수사국/;
 const ENGLISH_ENFORCEMENT = /immigration\s+(?:and\s+customs\s+enforcement|enforcement|raids?|crackdown)|deportation\s+(?:raids?|operations?)/i;
 const ENFORCEMENT_URL = /(?:^|[\/_-])(?:ice|immigration-enforcement|immigration-raids?|deportation-raids?)(?:[\/_-]|$)/i;
 

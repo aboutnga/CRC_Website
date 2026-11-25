@@ -5,11 +5,14 @@ export function isOrganizationNews(item:{title:string;summary?:string}):boolean 
   if(/횡령|기소|사기\s*(?:피해|혐의|사건|행각)|후원금.{0,12}가로채/.test(title))return false;
   if(/미주총연|미주한인회총연합회/.test(title) && /캠페인|등록|행사|총회/.test(title))return true;
   if(/협회|소사이어티|시니어센터|한인\s*상의/.test(title) && /전시회|세미나|특강|캠페인|명예의\s*거리|관광명소/.test(title))return true;
+  if(/포니정\s*영리더상|주년.{0,12}그룹전/.test(title))return true;
+  if(/교회|미주복음방송|KFAM|파바월드|시니어센터|문인협회|소설가협회/.test(title)
+    && /주최|성료|아웃리치|온정|봉사|모임|한\s*자리|수련회/.test(title))return true;
   // Bilingual directory entries repeat an organization's name in English.
   if(/(?:협회|지회|재단|한인회)\s*[-:·(]?\s*[A-Z][A-Za-z. &'-]+\b(?:ASSO\.?|ASSOC\.?|ASSOCIATION|FOUNDATION|CHAPTER)\s*[.)]*$/i.test(title))return true;
   if(/한인\s*상의|상공회의소|협회|재단/.test(title) && /골프\s*대회|초청\s*대회/.test(title) && /성료|개최|주최|초청|후원/.test(title))return true;
   if(/광복회|해외\s*독립\s*유공자\s*미주총회|단체\s*소식|재단\s*소식/.test(title))return true;
-  const organization=/단체|재단|협회|협의회|박물관|지회|지부|동문회|향우회|한인회|상공회의소|\b(?:foundation|association|society|chapter)\b/i;
-  const publicity=/송년회|활동보고|전시회|특강|세미나|캠페인|주최|주관|모임|이사진|명칭\s*변경|이름\s*변경|출범|발족|창립|기념식|기념행사|정기총회|월례회|이사회|이취임|취임|회장|임원|이사장|모금|기금|후원|기부|기탁|성금|장학금\s*전달|시상|수상|갈라|만찬|친목|교류|협약|행사|소식|\b(?:renam\w*|fundrais\w*|gala|banquet|anniversary|ceremony|appoint\w*|board|donat\w*)\b/i;
+  const organization=/동창회|교육원|IKEN|단체|재단|협회|협의회|박물관|지회|지부|동문회|향우회|한인회|상공회의소|\b(?:foundation|association|society|chapter)\b/i;
+  const publicity=/개최|송년모임|송년회|활동보고|전시회|특강|세미나|캠페인|주최|주관|모임|이사진|명칭\s*변경|이름\s*변경|출범|발족|창립|기념식|기념행사|정기총회|월례회|이사회|이취임|취임|회장|임원|이사장|모금|기금|후원|기부|기탁|성금|장학금\s*전달|시상|수상|갈라|만찬|친목|교류|협약|행사|소식|\b(?:renam\w*|fundrais\w*|gala|banquet|anniversary|ceremony|appoint\w*|board|donat\w*)\b/i;
   return organization.test(title)&&publicity.test(title);
 }

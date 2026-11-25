@@ -152,7 +152,10 @@ function sameObituary(a:string,b:string):boolean {
 export function sameStory(a: NewsItem, b: NewsItem): boolean {
   if (a.url === b.url) return true;
   if(a.date&&b.date&&Math.abs(Date.parse(a.date)-Date.parse(b.date))<3*86400000&&sameObituary(a.title,b.title))return true;
-  const x = headlineKey(a.title), y = headlineKey(b.title);
+  // Publisher bulletin labels do not create a new story.
+  const bulletin=(title:string)=>title.replace(/^\s*\[(?:속보|종합\d*보?|\d+보|고침)\]\s*/g,'')
+    .replace(/\s*\((?:종합\d*보?|\d+보)\)\s*$/g,'');
+  const x = headlineKey(bulletin(a.title)), y = headlineKey(bulletin(b.title));
   const eventKey = (title:string) => {
     // Narrow recurring events whose Korean headlines routinely use different names.
     // Forecasts are separate from announced changes; don't hide a material update.

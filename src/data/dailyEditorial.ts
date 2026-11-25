@@ -14,7 +14,7 @@ const US_LOCAL=/남가주|북가주|말리부|어바인|오리건|맨해튼|샌�
 const PRACTICAL=/건강|의료|병원|질환|치료|예방|다리|혈액|백신|약값|메디케어|치매|당뇨|암\s|항공|공항|비행|여권|국적|재외|한국행|귀국|방문|환율|송금|연금|상속|세금|리콜|식품|영주|비자|취업허가|노후|은퇴|주택|렌트|전기|휘발유|개솔린|물가|금리/;
 const ANNOUNCEMENTS=/단체\s*소식|이취임|취임식|공식\s*취임|정기총회|창립\s*기념|이사회|축제재단|동문회|향우회|한인회|상공회의소|어워즈|기금\s*모금|후원\s*행사|한인재단.*지원금|사설|오피니언|특별기고|오늘의\s*운세|증권\s*소식|뉴스\s*헤드라인/;
 const PROMOTIONS=/프로모션\s*코드|할인\s*코드|고객\s*모집|상품\s*출시|한정판.*출시|매장\s*오픈|타운\s*비지니스|\[(?:부동산|보험|재정|세무)\s*(?:가이드|칼럼)\]/;
-const NON_DAILY=/백악관|대변인|전폭기|국방부|군사|교황|평통|진보.*보수|스왈웰|재정적자.*증세|총결산.*세일|폭탄세일|팝업스토어|출사표|기업.*세미나|대학원.*세미나|친목|찬양|선교단|개인전|사진전|작품전|시조.*수상|대회.*대상|\[(?:금요단상|한국춘추|전망대|지평선|핫피플|전문)\]|\[(?:베스트원|케이만남|엘리트골프)|월드\s*파이널|월드시리즈|대표팀|손흥민|오타니|태민|뷔|방탄소년단|빅나티|하츠웨이브|하트시그널|김혜자|오스카|LA다저스|(?<!공공)공연.*홍보/;
+const NON_DAILY=/백악관|대변인|전폭기|국방부|군사|교황|평통|진보.*보수|스왈웰|재정적자.*증세|총결산.*세일|폭탄세일|팝업스토어|출사표|기업.*세미나|대학원.*세미나|친목|찬양|선교단|개인전|사진전|작품전|시조.*수상|대회.*대상|\[(?:프리즘|금요단상|한국춘추|전망대|지평선|핫피플|전문)\]|\[(?:베스트원|케이만남|엘리트골프)|월드\s*파이널|월드시리즈|대표팀|손흥민|오타니|태민|뷔|방탄소년단|빅나티|하츠웨이브|하트시그널|김혜자|오스카|LA다저스|(?<!공공)공연.*홍보/;
 
 /** Prioritize Korean-American coverage; useful Korea-related information is eligible. */
 export function isKoreanConsumerReport(item:NewsItem):boolean {
@@ -73,6 +73,13 @@ export function eligibleDaily(item:NewsItem):boolean {
 /** Known local incidents with heavily rewritten syndicated headlines. */
 export function dailyEvent(item:NewsItem):string|null {
   const headline=item.title;
+  if(/LA/.test(headline)&&/신규\s*주택/.test(headline)&&/ADU|별채/.test(headline)&&/41\.2/.test(headline))return 'la-adu-permits-41.2';
+  const pceMonth=headline.match(/(\d{1,2})월/)?.[1];
+  if(pceMonth && /PCE|개인소비지출/i.test(headline) && /물가/.test(headline) && /美|미국|미\s/.test(headline))return 'us-pce-'+pceMonth;
+  if(/관세/.test(headline) && /과잉생산|15%\s*상한/.test(headline) && /미국|美|USTR|EU/i.test(headline))return 'us-overcapacity-tariff';
+  if(/코스피/.test(headline) && /일장.{0,3}황.{0,3}몽/.test(headline))return 'kospi-nvidia-reversal';
+  if(/애플/.test(headline) && /1위|왕좌/.test(headline) && /M7|메타|엔비디아/.test(headline))return 'apple-m7-market-cap-lead';
+  if(/CA|가주|캘리포니아/.test(headline) && /킹\s*타이드|만조/.test(headline) && /대피|침수|해안/.test(headline))return 'california-king-tide';
   if(/패서디나/.test(headline)&&/289가구/.test(headline)&&/아파트/.test(headline))return 'pasadena-289-apartments';
   if(/하마/.test(headline)&&/사망/.test(headline)&&/스타|피오나/.test(headline))return 'fiona-hippo-death';
   if(/버뱅크공항/.test(headline)&&/관제사/.test(headline)&&/착륙/.test(headline))return 'burbank-no-controller-landing';
@@ -101,7 +108,7 @@ export function dailyEvent(item:NewsItem):string|null {
   if(/삼성화재/.test(item.title)&&/3조/.test(item.title)&&/보험사/.test(item.title))return 'samsung-insurance-uk-acquisition';
   // One quarterly U.S. GDP bulletin, including forecasts and results, per user request.
   const quarter=item.title.match(/([1-4])\s*분기/);
-  if(quarter&&/미국|美|미\s|U\.?S\.?/i.test(item.title)&&/GDP|국내총생산/i.test(item.title))return 'us-gdp-q'+quarter[1];
+  if(quarter&&/미국|美|미\s|U\.?S\.?/i.test(item.title)&&/GDP|국내총생산|성장률/i.test(item.title))return 'us-gdp-q'+quarter[1];
   if(/말리부/.test(item.title)&&/산불/.test(item.title))return 'malibu-fire';
   if(/오리건/.test(item.title)&&/초등/.test(item.title)&&/총격|총기/.test(item.title))return 'oregon-school-shooting';
   if(/남가주|샌타애나|산타애나/.test(item.title)&&/강풍/.test(item.title)&&/적색경보|산불.*위험/.test(item.title))return 'socal-wind-fire-warning';

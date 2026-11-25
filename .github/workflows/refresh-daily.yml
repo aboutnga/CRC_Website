@@ -76,6 +76,7 @@ jobs:
       - name: Validate editorial exclusions and reporter authorship
         run: |
           node node_modules/tsx/dist/cli.mjs scripts/test-nov20-matrix.ts
+          node node_modules/tsx/dist/cli.mjs scripts/test-nov25-matrix.ts
           node node_modules/tsx/dist/cli.mjs scripts/test-news-editorial.ts
           node node_modules/tsx/dist/cli.mjs scripts/test-news-authors.ts
       - name: Validate the website before publishing

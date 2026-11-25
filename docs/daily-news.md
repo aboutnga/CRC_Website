@@ -54,3 +54,6 @@ Education, admissions, academy, scholarship and student-program articles in ÏÉùÌ
 - Daily includes newly published eligible Korean American scam/consumer-harm reports. The separate scam page retains them as a collection; they are not exclusive categories.
 - Unseen recent scam reports use the same first-morning 48-hour window as other reporting. Previously displayed reports are not relabeled or recycled into today's Daily list.
 - Deduplicate same events across publishers, keep earliest eligible report, then sort newest first. Main edition remains capped at 45.
+
+## November 25 audit
+Treat breaking/comprehensive bulletin labels as the same story, and group the same tariff, monthly PCE, king-tide and market-cap events before the 45-headline limit. Keep the earliest eligible report and newest-first display order. Exclude organization outreach recaps, church/youth events, alumni gatherings and foundation award publicity. Preserve genuine scam reporting, ordinary benefits information and the approved national-security exception.
