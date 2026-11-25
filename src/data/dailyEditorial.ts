@@ -73,7 +73,7 @@ export function eligibleDaily(item:NewsItem):boolean {
 /** Known local incidents with heavily rewritten syndicated headlines. */
 export function dailyEvent(item:NewsItem):string|null {
   const headline=item.title;
-  if(/LA/.test(headline)&&/신규\s*주택/.test(headline)&&/ADU|별채/.test(headline)&&/41\.2/.test(headline))return 'la-adu-permits-41.2';
+  if(/LA/.test(headline)&&/신규\s*주택/.test(headline)&&/ADU|별채/.test(headline)&&/41\.2|10[건채]\s*중\s*4/.test(headline))return 'la-adu-permits-41.2';
   const pceMonth=headline.match(/(\d{1,2})월/)?.[1];
   if(pceMonth && /PCE|개인소비지출/i.test(headline) && /물가/.test(headline) && /美|미국|미\s/.test(headline))return 'us-pce-'+pceMonth;
   if(/관세/.test(headline) && /과잉생산|15%\s*상한/.test(headline) && /미국|美|USTR|EU/i.test(headline))return 'us-overcapacity-tariff';
